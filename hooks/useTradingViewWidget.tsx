@@ -12,7 +12,9 @@ const useTradingViewWidget = (
   useEffect(() => {
     if (!containerRef.current) return;
     if (containerRef.current.dataset.loaded) return;
-    containerRef.current.innerHTML = `<div class="tradingview-widget-container__widget" style="width: 100%; height: ${height}px;"></div>`;
+
+    const safeHeight = typeof height === "number" && height > 0 ? height : 600;
+    containerRef.current.innerHTML = `<div class="tradingview-widget-container__widget" style="width: 100%; height: ${safeHeight}px;"></div>`;
 
     const script = document.createElement("script");
     script.src = scriptUrl;
