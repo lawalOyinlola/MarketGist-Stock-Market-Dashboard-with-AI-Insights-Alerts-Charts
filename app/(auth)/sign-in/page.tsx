@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 
 const SignIn = () => {
   const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -48,7 +49,10 @@ const SignIn = () => {
           error={errors.email}
           validation={{
             required: "Email is required",
-            pattern: /^\w+@\w+\.\w+$/,
+            pattern: {
+              value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+              message: "Please enter a valid email address",
+            },
           }}
         />
 
