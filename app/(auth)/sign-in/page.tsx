@@ -4,10 +4,11 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/forms/InputField";
 import FooterLink from "@/components/forms/FooterLink";
-// import { signInWithEmail, signUpWithEmail } from "@/lib/actions/auth.actions";
-// import {toast} from "sonner";
-// import {signInEmail} from "better-auth/api";
+import { signInWithEmail } from "@/lib/actions/auth.actions";
+import { toast } from "sonner";
+// import { signInEmail } from "better-auth/api";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 const SignIn = () => {
   const router = useRouter();
@@ -26,13 +27,16 @@ const SignIn = () => {
 
   const onSubmit = async (data: SignInFormData) => {
     try {
-      // const result = await signInWithEmail(data);
-      // if (result.success) router.push("/");
+      const result = await signInWithEmail(data);
+      if (result.success) router.push("/");
+      toast.success("Sign in successful!", {
+        description: "redirecting...",
+      });
     } catch (e) {
       console.error(e);
-      // toast.error("Sign in failed", {
-      //   description: e instanceof Error ? e.message : "Failed to sign in.",
-      // });
+      toast.error("Sign in failed", {
+        description: e instanceof Error ? e.message : "Failed to sign in.",
+      });
     }
   };
 
@@ -44,7 +48,7 @@ const SignIn = () => {
         <InputField
           name="email"
           label="Email"
-          placeholder="contact@jsmastery.com"
+          placeholder="example@email.com"
           register={register}
           error={errors.email}
           validation={{
@@ -71,6 +75,7 @@ const SignIn = () => {
           disabled={isSubmitting}
           className="yellow-btn w-full mt-5"
         >
+          {isSubmitting && <Spinner />}
           {isSubmitting ? "Signing In" : "Sign In"}
         </Button>
 

@@ -6,14 +6,15 @@ import {
   PREFERRED_INDUSTRIES,
   RISK_TOLERANCE_OPTIONS,
 } from "@/lib/constants";
-// import { signUpWithEmail } from "@/lib/actions/auth.actions";
+import { signUpWithEmail } from "@/lib/actions/auth.actions";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/forms/InputField";
 import SelectField from "@/components/forms/SelectField";
 import { CountrySelectField } from "@/components/forms/CountrySelectField";
 import FooterLink from "@/components/forms/FooterLink";
-// import { toast } from "sonner";
+import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 const SignUp = () => {
   const router = useRouter();
@@ -37,14 +38,17 @@ const SignUp = () => {
 
   const onSubmit = async (data: SignUpFormData) => {
     try {
-      // const result = await signUpWithEmail(data);
-      // if (result.success) router.push("/");
+      const result = await signUpWithEmail(data);
+      if (result.success) router.push("/");
+      toast.success("Sign up successful", {
+        description: "Please check your email for verification",
+      });
     } catch (e) {
       console.error(e);
-      // toast.error("Sign up failed", {
-      //   description:
-      //     e instanceof Error ? e.message : "Failed to create an account.",
-      // });
+      toast.error("Sign up failed", {
+        description:
+          e instanceof Error ? e.message : "Failed to create an account.",
+      });
     }
   };
 
@@ -59,7 +63,13 @@ const SignUp = () => {
           placeholder="John Doe"
           register={register}
           error={errors.fullName}
-          validation={{ required: "Full name is required", minLength: 2 }}
+          validation={{
+            required: "Full name is required",
+            minLength: {
+              value: 2,
+              message: "Full name must be at least 2 characters long",
+            },
+          }}
         />
 
         <InputField
@@ -84,7 +94,13 @@ const SignUp = () => {
           type="password"
           register={register}
           error={errors.password}
-          validation={{ required: "Password is required", minLength: 8 }}
+          validation={{
+            required: "Password is required",
+            minLength: {
+              value: 8,
+              message: "Password must be at least 8 characters long",
+            },
+          }}
         />
 
         <CountrySelectField
@@ -132,6 +148,7 @@ const SignUp = () => {
           disabled={isSubmitting}
           className="yellow-btn w-full mt-5"
         >
+          {isSubmitting && <Spinner />}
           {isSubmitting ? "Creating Account" : "Start Your Investing Journey"}
         </Button>
 
