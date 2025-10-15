@@ -39,9 +39,16 @@ const SignUp = () => {
   const onSubmit = async (data: SignUpFormData) => {
     try {
       const result = await signUpWithEmail(data);
-      if (result.success) router.push("/");
-      toast.success("Sign up successful", {
-        description: "Please check your email for verification",
+
+      if (result.success) {
+        toast.success("Sign up successful", {
+          description: "Welcome aboard! Redirecting...",
+        });
+
+        return router.push("/");
+      }
+      toast.error("Sign up failed", {
+        description: result.error ?? "Failed to create an account.",
       });
     } catch (e) {
       console.error(e);

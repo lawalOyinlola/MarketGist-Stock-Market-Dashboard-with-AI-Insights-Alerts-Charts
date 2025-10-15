@@ -40,6 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# AWS local credentials (if used for SES or SDKs during dev)
+.aws/
+
 # Documentation (local only)
 DATABASE_TESTING.md
 

@@ -20,11 +20,19 @@ const UserDropdown = ({ user }: { user: User }) => {
   const router = useRouter();
 
   const handleSignOut: () => Promise<void> = async () => {
-    await signOut();
-    router.push("/sign-in");
+    const result = await signOut();
+    if (result?.success === false) {
+      toast.error("Sign out failed", {
+        description: result.error || "Please try again",
+      });
+      return;
+    }
     toast.success("Signed out successfully!", {
-      description: "redirecting...",
+      description: "Redirecting...",
     });
+    setTimeout(() => {
+      router.push("/sign-in");
+    }, 1000);
   };
 
   return (
@@ -82,7 +90,7 @@ const UserAvatar = ({
   <Avatar className={size}>
     <AvatarImage src="/assets/images/lawal_oyinlola-profile_picture.png" />
     <AvatarFallback className="bg-yellow-500 text-yellow-900 text-sm font-bold">
-      {user?.name[0]}
+      {user?.name?.[0] || "U"}
     </AvatarFallback>
   </Avatar>
 );

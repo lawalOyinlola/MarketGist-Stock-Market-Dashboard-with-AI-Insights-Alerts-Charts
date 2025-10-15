@@ -5,15 +5,17 @@ import nodemailer from "nodemailer";
 // } from "@/lib/nodemailer/templates";
 import { WELCOME_EMAIL_TEMPLATE } from "@/lib/nodemailer/templates";
 
+const { NODEMAILER_EMAIL, NODEMAILER_PASSWORD } = process.env;
+if (!NODEMAILER_EMAIL || !NODEMAILER_PASSWORD) {
+  throw new Error("NODEMAILER_EMAIL and NODEMAILER_PASSWORD must be set");
+}
 export const transporter = nodemailer.createTransport({
   service: "gmail",
-  auth: {
-    user: process.env.NODEMAILER_EMAIL!,
-    pass: process.env.NODEMAILER_PASSWORD!,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
+  auth: { user: NODEMAILER_EMAIL, pass: NODEMAILER_PASSWORD },
+  // Remove insecure TLS override; Gmail provides valid certs.
+  // tls: {
+  //   rejectUnauthorized: false,
+  // },
 });
 
 export const sendWelcomeEmail = async ({
@@ -21,13 +23,26 @@ export const sendWelcomeEmail = async ({
   name,
   intro,
 }: WelcomeEmailData) => {
-  const htmlTemplate = WELCOME_EMAIL_TEMPLATE.replace("{{name}}", name).replace(
-    "{{intro}}",
-    intro
-  );
+  const escape = (s: string) =>
+    s.replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[c]!)
+    );
+
+  const htmlTemplate = WELCOME_EMAIL_TEMPLATE.replace(
+    "{{name}}",
+    escape(name)
+  ).replace("{{intro}}", escape(intro));
 
   const mailOptions = {
-    from: `"Signalist" <honeyzrich1705@gmail.com>`,
+    from: `"Signalist" <${process.env.NODEMAILER_EMAIL}>`,
     to: email,
     subject: `Welcome to Signalist - your stock market toolkit is ready!`,
     text: "Thanks for joining Signalist",
