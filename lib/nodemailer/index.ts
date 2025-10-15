@@ -36,10 +36,13 @@ export const sendWelcomeEmail = async ({
         }[c]!)
     );
 
-  const htmlTemplate = WELCOME_EMAIL_TEMPLATE.replace(
-    "{{name}}",
-    escape(name)
-  ).replace("{{intro}}", escape(intro));
+  const dashboardUrl = process.env.BETTER_AUTH_URL || "https://signalist.com";
+  const unsubscribeUrl = `${dashboardUrl}/unsubscribe`;
+
+  const htmlTemplate = WELCOME_EMAIL_TEMPLATE.replace("{{name}}", escape(name))
+    .replace("{{intro}}", escape(intro))
+    .replace(/\{\{dashboardUrl\}\}/g, dashboardUrl)
+    .replace(/\{\{unsubscribeUrl\}\}/g, unsubscribeUrl);
 
   const mailOptions = {
     from: `"Signalist" <${process.env.NODEMAILER_EMAIL}>`,

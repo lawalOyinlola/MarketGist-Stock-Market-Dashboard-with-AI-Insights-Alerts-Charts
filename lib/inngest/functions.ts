@@ -16,6 +16,10 @@ export const sendSignUpEmail = inngest.createFunction(
   { event: "app/user.created" },
   async ({ event, step }) => {
     try {
+      if (!process.env.GEMINI_API_KEY) {
+        throw new Error("GEMINI_API_KEY environment variable is required");
+      }
+
       const { country, investmentGoals, riskTolerance, preferredIndustry } =
         event.data;
 

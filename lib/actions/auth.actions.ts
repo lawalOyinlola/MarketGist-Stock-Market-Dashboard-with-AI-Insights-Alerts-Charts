@@ -3,7 +3,6 @@
 import { auth } from "@/lib/better-auth/auth";
 import { inngest } from "@/lib/inngest/client";
 import { headers } from "next/headers";
-import { toast } from "sonner";
 
 export const signUpWithEmail = async ({
   email,
@@ -24,7 +23,7 @@ export const signUpWithEmail = async ({
     }
 
     // Validate email format
-    const emailRegex = /^[^\s@]@[^\s@]\.[^\s@]$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return {
         success: false,
@@ -68,12 +67,6 @@ export const signUpWithEmail = async ({
     console.error("Sign up failed:", e);
     const errorMessage = e instanceof Error ? e.message : "Sign up failed";
 
-    toast.error(
-      errorMessage.includes("already exists")
-        ? "An account with this email already exists"
-        : "Sign up failed. Please try again."
-    );
-
     return {
       success: false,
       error: errorMessage.includes("already exists")
@@ -95,13 +88,6 @@ export const signInWithEmail = async ({ email, password }: SignInFormData) => {
   } catch (e) {
     console.error("Sign in failed", e);
     const errorMessage = e instanceof Error ? e.message : "Sign in failed";
-
-    toast.error(
-      errorMessage.includes("Invalid credentials") ||
-        errorMessage.includes("not found")
-        ? "Invalid email or password"
-        : "Sign in failed. Please try again."
-    );
 
     return {
       success: false,
