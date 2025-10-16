@@ -13,14 +13,26 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
 import { LogOutIcon } from "lucide-react";
 import NavItems from "./NavItems";
+import { signOut } from "@/lib/actions/auth.actions";
+import { toast } from "sonner";
 
-const user = { name: "Yero", email: "honeyzrich1705@gmail.com" };
-
-const UserDropdown = () => {
+const UserDropdown = ({ user }: { user: User }) => {
   const router = useRouter();
 
   const handleSignOut: () => Promise<void> = async () => {
-    router.push("/sign-in");
+    const result = await signOut();
+    if (result?.success === false) {
+      toast.error("Sign out failed", {
+        description: result.error || "Please try again",
+      });
+      return;
+    }
+    toast.success("Signed out successfully!", {
+      description: "Redirecting...",
+    });
+    setTimeout(() => {
+      router.push("/sign-in");
+    }, 1000);
   };
 
   return (
@@ -30,7 +42,7 @@ const UserDropdown = () => {
           variant="ghost"
           className="flex items-center gap-3 text-gray-400 hover:text-yellow-500"
         >
-          <UserAvatar />
+          <UserAvatar user={user} />
           <div className="hidden md:flex flex-col items-start">
             <span className="text-base font-medium text-gray-400">
               {user.name}
@@ -41,7 +53,7 @@ const UserDropdown = () => {
       <DropdownMenuContent className="text-gray-400">
         <DropdownMenuLabel>
           <div className="flex relative items-center gap-3 py-2">
-            <UserAvatar />
+            <UserAvatar user={user} />
             <div className="flex flex-col">
               <span className="text-base font-medium text-gray-400">
                 {user.name}
@@ -68,11 +80,17 @@ const UserDropdown = () => {
   );
 };
 
-const UserAvatar = ({ size = "h-8 w-8" }: { size?: string }) => (
+const UserAvatar = ({
+  size = "h-8 w-8",
+  user,
+}: {
+  size?: string;
+  user: User;
+}) => (
   <Avatar className={size}>
     <AvatarImage src="/assets/images/lawal_oyinlola-profile_picture.png" />
     <AvatarFallback className="bg-yellow-500 text-yellow-900 text-sm font-bold">
-      {user.name[0]}
+      {user?.name?.[0] || "U"}
     </AvatarFallback>
   </Avatar>
 );
