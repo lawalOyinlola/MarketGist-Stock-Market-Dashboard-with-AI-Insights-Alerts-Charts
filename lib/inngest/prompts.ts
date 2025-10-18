@@ -41,7 +41,7 @@ CRITICAL FORMATTING REQUIREMENTS:
 - Second sentence should add helpful context or reinforce the personalization
 
 Example personalized outputs (showing obvious customization with TWO sentences):
-<p class="mobile-text" style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">Thanks for joining Marketgist! As someone focused on <strong>technology growth stocks</strong>, you'll love our real-time alerts for companies like the ones you're tracking. We'll help you spot opportunities before they become mainstream news.</p>
+<p class="mobile-text" style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">Thanks for joining Marketgist — since you're focused on <strong>technology growth stocks</strong>, we'll tailor real-time alerts to the exact companies you're tracking so you never miss momentum. Expect concise signals with context to help you act early, aligned with your goals and risk comfort.</p>
 
 <p class="mobile-text" style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">Great to have you aboard! Perfect for your <strong>conservative retirement strategy</strong> — we'll help you monitor dividend stocks without overwhelming you with noise. You can finally track your portfolio progress with confidence and clarity.</p>
 
@@ -209,8 +209,8 @@ Country: {{country}}
 
 IMPORTANT RULES:
 1. TradingView uses specific symbol formats that may differ from Finnhub
-2. For US stocks: Usually just the symbol (e.g., AAPL for Apple)
-3. For international stocks: Often includes exchange prefix (e.g., NASDAQ:AAPL, NYSE:MSFT, LSE:BARC)
+2. Always include the exchange prefix: EXCHANGE:SYMBOL
+3. Examples: NASDAQ:AAPL (Apple), NYSE:MSFT (Microsoft), LSE:BARC (Barclays)
 4. Some symbols may have suffixes for different share classes
 5. ADRs and foreign stocks may have different symbol formats
 

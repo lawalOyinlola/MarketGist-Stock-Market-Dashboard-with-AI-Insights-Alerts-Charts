@@ -2,12 +2,12 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(...inputs));
 }
 
 export const formatTimeAgo = (timestamp: number) => {
   const now = Date.now();
-  const diffInMs = now - timestamp * 1000; // Convert to milliseconds
+  const diffInMs = Math.max(0, now - timestamp * 1000); // Convert to milliseconds
   const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
   const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
 
@@ -85,7 +85,7 @@ export const formatArticle = (
   symbol?: string,
   index: number = 0
 ) => ({
-  id: isCompanyNews ? Date.now() + Math.random() : article.id + index,
+  id: isCompanyNews ? (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`) : article.id + index,
   headline: article.headline!.trim(),
   summary:
     article.summary!.trim().substring(0, isCompanyNews ? 200 : 150) + "...",
@@ -98,7 +98,7 @@ export const formatArticle = (
 });
 
 export const formatChangePercent = (changePercent?: number) => {
-  if (!changePercent) return "";
+  if (changePercent === undefined || changePercent === null) return "";
   const sign = changePercent > 0 ? "+" : "";
   return `${sign}${changePercent.toFixed(2)}%`;
 };

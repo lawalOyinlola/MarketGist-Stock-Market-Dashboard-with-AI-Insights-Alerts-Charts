@@ -1,25 +1,32 @@
-'use server';
+"use server";
 
-import {connectToDatabase} from "@/database/mongoose";
+import { connectToDatabase } from "@/database/mongoose";
 
-export const getAllUsersForNewsEmail = async () => {
-    try {
-        const mongoose = await connectToDatabase();
-        const db = mongoose.connection.db;
-        if(!db) throw new Error('Mongoose connection not connected');
+type NewsUser = { id: string; email: string; name: string };
 
-        const users = await db.collection('user').find(
-            { email: { $exists: true, $ne: null }},
-            { projection: { _id: 1, id: 1, email: 1, name: 1, country:1 }}
-        ).toArray();
+export const getAllUsersForNewsEmail = async (): Promise<NewsUser[]> => {
+  try {
+    const mongoose = await connectToDatabase();
+    const db = mongoose.connection.db;
+    if (!db) throw new Error("MongoDB connection not found");
 
-        return users.filter((user) => user.email && user.name).map((user) => ({
-            id: user.id || user._id?.toString() || '',
-            email: user.email,
-            name: user.name
-        }))
-    } catch (e) {
-        console.error('Error fetching users for news email:', e)
-        return []
-    }
-}
+    const users = await db
+      .collection("user")
+      .find(
+        { email: { $exists: true, $ne: null } },
+        { projection: { _id: 1, id: 1, email: 1, name: 1, country: 1 } }
+      )
+      .toArray();
+
+    return users
+      .filter((user) => user.email && user.name)
+      .map((user) => ({
+        id: user.id || user._id?.toString() || "",
+        email: user.email,
+        name: user.name,
+      }));
+  } catch (e) {
+    console.error("Error fetching users for news email:", e);
+    return [];
+  }
+};

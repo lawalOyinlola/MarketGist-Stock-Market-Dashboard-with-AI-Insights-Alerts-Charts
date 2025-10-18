@@ -10,7 +10,7 @@ import {
 } from "@/lib/inngest/functions";
 
 export const runtime = "nodejs";
-export const { GET, POST, PUT } = serve({
+export const { GET, POST } = serve({
   client: inngest,
   functions: [
     sendSignUpEmail,

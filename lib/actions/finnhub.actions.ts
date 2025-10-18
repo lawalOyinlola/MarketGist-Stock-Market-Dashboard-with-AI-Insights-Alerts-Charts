@@ -6,8 +6,7 @@ import { getDateRange, validateArticle, formatArticle } from "@/lib/utils";
 // import { cache } from "react";
 
 const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
-const NEXT_PUBLIC_FINNHUB_API_KEY =
-  process.env.NEXT_PUBLIC_FINNHUB_API_KEY ?? "";
+const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 
 async function fetchJSON<T>(
   url: string,
@@ -18,7 +17,11 @@ async function fetchJSON<T>(
       ? { cache: "force-cache", next: { revalidate: revalidateSeconds } }
       : { cache: "no-store" };
 
-  const res = await fetch(url, options);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000); // 10s
+  const res = await fetch(url, { ...options, signal: controller.signal });
+  clearTimeout(timeout);
+
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`Fetch failed ${res.status}: ${text}`);
@@ -33,7 +36,7 @@ export async function getNews(
 ): Promise<MarketNewsArticle[]> {
   try {
     const range = getDateRange(5);
-    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+    const token = process.env.FINNHUB_API_KEY;
     if (!token) {
       throw new Error("FINNHUB API key is not configured");
     }
@@ -47,20 +50,24 @@ export async function getNews(
     if (cleanSymbols.length > 0) {
       const perSymbolArticles: Record<string, RawNewsArticle[]> = {};
 
-      await Promise.all(
-        cleanSymbols.map(async (sym) => {
-          try {
-            const url = `${FINNHUB_BASE_URL}/company-news?symbol=${encodeURIComponent(
-              sym
-            )}&from=${range.from}&to=${range.to}&token=${token}`;
-            const articles = await fetchJSON<RawNewsArticle[]>(url, 300);
-            perSymbolArticles[sym] = (articles || []).filter(validateArticle);
-          } catch (e) {
-            console.error("Error fetching company news for", sym, e);
-            perSymbolArticles[sym] = [];
-          }
-        })
-      );
+      const pool = 5;
+      for (let i = 0; i < cleanSymbols.length; i += pool) {
+        const batch = cleanSymbols.slice(i, i + pool);
+        await Promise.all(
+          batch.map(async (sym) => {
+            try {
+              const url = `${FINNHUB_BASE_URL}/company-news?symbol=${encodeURIComponent(
+                sym
+              )}&from=${range.from}&to=${range.to}&token=${token}`;
+              const articles = await fetchJSON<RawNewsArticle[]>(url, 300);
+              perSymbolArticles[sym] = (articles || []).filter(validateArticle);
+            } catch (e) {
+              console.error("Error fetching company news for", sym, e);
+              perSymbolArticles[sym] = [];
+            }
+          })
+        );
+      }
 
       const collected: MarketNewsArticle[] = [];
       // Round-robin up to 6 picks
@@ -69,7 +76,10 @@ export async function getNews(
           const sym = cleanSymbols[i];
           const list = perSymbolArticles[sym] || [];
           if (list.length === 0) continue;
-          const article = list.shift();
+
+          const idx = perSymbolArticles[sym].length - list.length;
+          const article = list[idx];
+
           if (!article || !validateArticle(article)) continue;
           collected.push(formatArticle(article, true, sym, round));
           if (collected.length >= maxArticles) break;

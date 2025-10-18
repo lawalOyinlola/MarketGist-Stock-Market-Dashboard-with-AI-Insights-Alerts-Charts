@@ -9,9 +9,7 @@ import {
 } from "@/lib/nodemailer/templates";
 
 const { NODEMAILER_EMAIL, NODEMAILER_PASSWORD } = process.env;
-if (!NODEMAILER_EMAIL || !NODEMAILER_PASSWORD) {
-  throw new Error("NODEMAILER_EMAIL and NODEMAILER_PASSWORD must be set");
-}
+
 export const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: { user: NODEMAILER_EMAIL, pass: NODEMAILER_PASSWORD },
@@ -150,7 +148,10 @@ export const sendStockAlertUpperEmail = async ({
   const mailOptions = {
     from: `"Marketgist Alerts" <${process.env.NODEMAILER_EMAIL}>`,
     to: email,
-    subject: `📈 Price Alert: ${symbol} Hit Upper Target - $${currentPrice}`,
+    subject: `📈 Price Alert: ${symbol.replace(
+      /[\r\n]/g,
+      " "
+    )} Hit Upper Target - $${currentPrice}`,
     text: `Price Alert: ${symbol} (${company}) hit your upper target of $${targetPrice}. Current price: $${currentPrice}. Visit ${dashboardUrl} to view your dashboard.`,
     html: htmlTemplate,
   };

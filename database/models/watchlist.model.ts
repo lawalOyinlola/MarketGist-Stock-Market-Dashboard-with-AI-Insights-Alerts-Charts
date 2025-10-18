@@ -1,4 +1,4 @@
-import { Schema, model, models, type Document, type Model } from 'mongoose';
+import { Schema, model, models, type Document, type Model } from "mongoose";
 
 export interface WatchlistItem extends Document {
   userId: string;
@@ -21,4 +21,5 @@ const WatchlistSchema = new Schema<WatchlistItem>(
 WatchlistSchema.index({ userId: 1, symbol: 1 }, { unique: true });
 
 export const Watchlist: Model<WatchlistItem> =
-  (models?.Watchlist as Model<WatchlistItem>) || model<WatchlistItem>('Watchlist', WatchlistSchema);
+  (models?.Watchlist as Model<WatchlistItem>) ||
+  model<WatchlistItem>("Watchlist", WatchlistSchema);
