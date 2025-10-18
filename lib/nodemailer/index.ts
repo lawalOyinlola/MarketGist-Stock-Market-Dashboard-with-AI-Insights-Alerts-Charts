@@ -60,7 +60,6 @@ export const sendNewsSummaryEmail = async ({
   email,
   date,
   newsContent,
-  name,
 }: {
   email: string;
   date: string;

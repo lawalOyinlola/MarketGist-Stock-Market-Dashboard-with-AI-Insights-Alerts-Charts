@@ -22,8 +22,8 @@ export async function getWatchlistSymbolsByEmail(
 
     const userId =
       (user.id as string) ??
-      (user._id as any)?.toHexString?.() ??
-      (user._id as any)?.toString?.() ??
+      (user._id as { toHexString?: () => string })?.toHexString?.() ??
+      (user._id as { toString?: () => string })?.toString?.() ??
       "";
 
     if (!userId) return [];
