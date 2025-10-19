@@ -35,3 +35,82 @@ export async function getWatchlistSymbolsByEmail(
     return [];
   }
 }
+
+export async function addToWatchlist(
+  symbol: string,
+  company: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const mongoose = await connectToDatabase();
+    const db = mongoose.connection.db;
+    if (!db) throw new Error("MongoDB connection not found");
+
+    // Get current user from auth
+    const { getAuth } = await import("@/lib/better-auth/auth");
+    const { headers } = await import("next/headers");
+    const auth = await getAuth();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session?.user) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const userId = session.user.id;
+
+    // Check if already in watchlist
+    const existing = await Watchlist.findOne({ userId, symbol });
+    if (existing) {
+      return { success: false, error: "Stock already in watchlist" };
+    }
+
+    // Add to watchlist
+    await Watchlist.create({
+      userId,
+      symbol: symbol.toUpperCase(),
+      company,
+      addedAt: new Date(),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("addToWatchlist error:", error);
+    return { success: false, error: "Failed to add to watchlist" };
+  }
+}
+
+export async function removeFromWatchlist(
+  symbol: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const mongoose = await connectToDatabase();
+    const db = mongoose.connection.db;
+    if (!db) throw new Error("MongoDB connection not found");
+
+    // Get current user from auth
+    const { getAuth } = await import("@/lib/better-auth/auth");
+    const { headers } = await import("next/headers");
+    const auth = await getAuth();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session?.user) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const userId = session.user.id;
+
+    // Remove from watchlist
+    const result = await Watchlist.deleteOne({
+      userId,
+      symbol: symbol.toUpperCase(),
+    });
+
+    if (result.deletedCount === 0) {
+      return { success: false, error: "Stock not found in watchlist" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("removeFromWatchlist error:", error);
+    return { success: false, error: "Failed to remove from watchlist" };
+  }
+}
