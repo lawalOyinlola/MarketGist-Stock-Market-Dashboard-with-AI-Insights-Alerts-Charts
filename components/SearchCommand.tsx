@@ -48,10 +48,8 @@ export default function SearchCommand({
 
     try {
       const results = await searchStocks(searchTerm.trim());
-      console.log("Search results:", results); // Debug log
       setStocks(results);
-    } catch (error) {
-      console.error("Search error:", error); // Debug log
+    } catch {
       setStocks([]);
     } finally {
       setLoading(false);
@@ -62,7 +60,7 @@ export default function SearchCommand({
 
   useEffect(() => {
     debouncedSearch();
-  }, [searchTerm]);
+  }, [searchTerm, debouncedSearch]);
 
   const handleSelectStock = () => {
     setOpen(false);
@@ -102,7 +100,7 @@ export default function SearchCommand({
             </CommandEmpty>
           ) : displayStocks?.length === 0 ? (
             <CommandEmpty className="search-list-indicator">
-              {isSearchMode ? "No results found" : "No stocks in available"}
+              {isSearchMode ? "No results found" : "No stocks available"}
             </CommandEmpty>
           ) : (
             <ul>
@@ -112,26 +110,28 @@ export default function SearchCommand({
               </div>
 
               {displayStocks?.map((stock, i) => (
-                <>
-                  <li key={stock.symbol} className="search-item">
-                    <Link
-                      href={`/stock/${stock.symbol}`}
-                      onClick={handleSelectStock}
-                      className="search-item-link"
-                    >
-                      <TrendingUpIcon className="h-4 w-4 text-gray-500" />
+                <li key={stock.symbol} className="search-item">
+                  <Link
+                    href={`/stocks/${stock.symbol}`}
+                    onClick={handleSelectStock}
+                    className="search-item-link"
+                  >
+                    <TrendingUpIcon className="h-4 w-4 text-gray-500" />
 
-                      <div className="flex-1">
-                        <div className="search-item-name">{stock.name}</div>
-                        <div className="text-sm text-gray-500">
-                          {stock.symbol} | {stock.exchange} | {stock.type}
-                        </div>
+                    <div className="flex-1">
+                      <div className="search-item-name">{stock.name}</div>
+                      <div className="text-sm text-gray-500">
+                        {stock.symbol} | {stock.exchange} | {stock.type}
                       </div>
+                    </div>
+                    {stock.isInWatchlist ? (
+                      <StarIcon className="w-4 h-4 text-yellow-500 fill-current" />
+                    ) : (
                       <StarIcon className="h-4 w-4 text-gray-500" />
-                    </Link>
-                  </li>
+                    )}
+                  </Link>
                   {i < displayStocks?.length - 1 && <CommandSeparator />}
-                </>
+                </li>
               ))}
             </ul>
           )}
