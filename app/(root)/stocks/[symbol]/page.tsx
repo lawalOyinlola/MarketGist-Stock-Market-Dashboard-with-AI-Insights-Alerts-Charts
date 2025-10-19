@@ -7,6 +7,7 @@ import {
   TECHNICAL_ANALYSIS_WIDGET_CONFIG,
   COMPANY_PROFILE_WIDGET_CONFIG,
   COMPANY_FINANCIALS_WIDGET_CONFIG,
+  MARKET_OVERVIEW_WIDGET_CONFIG,
 } from "@/lib/constants";
 import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 import { getAuth } from "@/lib/better-auth/auth";
@@ -44,7 +45,7 @@ const StockDetails = async ({ params }: StockDetailsPageProps) => {
           <TradingViewWidget
             title={`Market Overview`}
             scriptUrl={`${scriptUrl}ticker-tape.js`}
-            config={SYMBOL_INFO_WIDGET_CONFIG(symbol)}
+            config={MARKET_OVERVIEW_WIDGET_CONFIG}
             height={170}
             className="md:col-span-full"
           />
@@ -84,7 +85,7 @@ const StockDetails = async ({ params }: StockDetailsPageProps) => {
               symbol={symbol}
               company={company}
               isInWatchlist={isInWatchlist}
-              type="button"
+              mode="button"
             />
           </div>
 
