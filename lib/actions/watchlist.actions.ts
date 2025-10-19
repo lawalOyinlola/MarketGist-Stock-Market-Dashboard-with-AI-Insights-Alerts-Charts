@@ -58,18 +58,27 @@ export async function addToWatchlist(
     const userId = session.user.id;
 
     // Check if already in watchlist
-    const existing = await Watchlist.findOne({ userId, symbol });
+    const normalized = symbol.toUpperCase().trim();
+    const existing = await Watchlist.findOne({ userId, symbol: normalized });
+
     if (existing) {
       return { success: false, error: "Stock already in watchlist" };
     }
 
     // Add to watchlist
-    await Watchlist.create({
-      userId,
-      symbol: symbol.toUpperCase(),
-      company,
-      addedAt: new Date(),
-    });
+    try {
+      await Watchlist.create({
+        userId,
+        symbol: symbol.toUpperCase(),
+        company: company?.trim?.() || company,
+        addedAt: new Date(),
+      });
+    } catch (e: any) {
+      if (e?.code === 11000) {
+        return { success: false, error: "Stock already in watchlist" };
+      }
+      throw e;
+    }
 
     return { success: true };
   } catch (error) {

@@ -15,7 +15,7 @@ const WatchlistButton = ({
   company,
   isInWatchlist,
   showTrashIcon = false,
-  type = "button",
+  mode = "button",
   onWatchlistChange,
 }: WatchlistButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +62,7 @@ const WatchlistButton = ({
     }
   };
 
-  if (type === "icon") {
+  if (mode === "icon") {
     return (
       <Button
         variant="ghost"
