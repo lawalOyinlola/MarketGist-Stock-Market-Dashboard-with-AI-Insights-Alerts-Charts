@@ -12,7 +12,6 @@ import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
 import Link from "next/link";
 import { TrendingUpIcon } from "lucide-react";
-import { searchStocks } from "@/lib/actions/finnhub.actions";
 import { useDebounce } from "@/hooks/useDebounce";
 import WatchlistButton from "./WatchlistButton";
 import { useWatchlist } from "./WatchlistProvider";
@@ -27,7 +26,18 @@ export default function SearchCommand({
   const [stocks, setStocks] =
     useState<StockWithWatchlistStatus[]>(initialStocks);
   const [loading, setLoading] = useState<boolean>(false);
-  const { isInWatchlist } = useWatchlist();
+  const { isInWatchlist: checkWatchlist } = useWatchlist();
+
+  // Update initial stocks with real watchlist status when component mounts
+  useEffect(() => {
+    if (initialStocks.length > 0) {
+      const updatedStocks = initialStocks.map((stock) => ({
+        ...stock,
+        isInWatchlist: checkWatchlist(stock.symbol),
+      }));
+      setStocks(updatedStocks);
+    }
+  }, [initialStocks, checkWatchlist]);
 
   const isSearchMode = !!searchTerm.trim();
   const displayStocks = isSearchMode ? stocks : stocks?.slice(0, 10);
@@ -50,7 +60,23 @@ export default function SearchCommand({
     setLoading(true);
 
     try {
-      const results = await searchStocks(searchTerm.trim());
+      // Call our API route instead of the server action
+      const url = new URL("/api/stocks/search", window.location.origin);
+      if (searchTerm.trim()) {
+        url.searchParams.set("q", searchTerm.trim());
+      }
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`);
+      }
+
+      const results = await response.json();
       setStocks(results);
     } catch {
       setStocks([]);
@@ -142,7 +168,7 @@ export default function SearchCommand({
                       mode="icon"
                       symbol={stock.symbol}
                       company={stock.name}
-                      isInWatchlist={isInWatchlist(stock.symbol)}
+                      isInWatchlist={checkWatchlist(stock.symbol)}
                       onWatchlistChange={handleWatchlistChange}
                     />
                   </div>

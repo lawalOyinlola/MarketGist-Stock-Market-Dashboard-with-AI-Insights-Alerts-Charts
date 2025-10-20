@@ -7,6 +7,7 @@ import {
   VOLUME_ALERT_EMAIL_TEMPLATE,
   INACTIVE_USER_REMINDER_EMAIL_TEMPLATE,
 } from "@/lib/nodemailer/templates";
+import sanitizeHtml from "sanitize-html";
 
 const { NODEMAILER_EMAIL, NODEMAILER_PASSWORD } = process.env;
 
@@ -18,6 +19,18 @@ export const transporter = nodemailer.createTransport({
   //   rejectUnauthorized: false,
   // },
 });
+
+const sanitizeRich = (html: string) =>
+  sanitizeHtml(html, {
+    allowedTags: ["b", "i", "em", "strong", "p", "br", "ul", "ol", "li", "a"],
+    allowedAttributes: { a: ["href", "rel", "target"] },
+    transformTags: {
+      a: sanitizeHtml.simpleTransform("a", {
+        rel: "noopener noreferrer",
+        target: "_blank",
+      }),
+    },
+  });
 
 export const sendWelcomeEmail = async ({
   email,
@@ -41,7 +54,7 @@ export const sendWelcomeEmail = async ({
   const unsubscribeUrl = `${dashboardUrl}/unsubscribe`;
 
   const htmlTemplate = WELCOME_EMAIL_TEMPLATE.replace("{{name}}", escape(name))
-    .replace("{{intro}}", intro)
+    .replace("{{intro}}", sanitizeRich(intro))
     .replace(/\{\{dashboardUrl\}\}/g, dashboardUrl)
     .replace(/\{\{unsubscribeUrl\}\}/g, unsubscribeUrl);
 
@@ -86,7 +99,7 @@ export const sendNewsSummaryEmail = async ({
     "{{date}}",
     escape(date)
   )
-    .replace("{{newsContent}}", newsContent)
+    .replace("{{newsContent}}", sanitizeRich(newsContent))
     .replace(/\{\{dashboardUrl\}\}/g, dashboardUrl)
     .replace(/\{\{unsubscribeUrl\}\}/g, unsubscribeUrl);
 

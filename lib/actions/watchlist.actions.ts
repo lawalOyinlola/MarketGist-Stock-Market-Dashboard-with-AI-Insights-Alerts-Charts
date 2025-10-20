@@ -36,6 +36,8 @@ export async function getWatchlistSymbolsByEmail(
   }
 }
 
+
+
 export async function addToWatchlist(
   symbol: string,
   company: string
