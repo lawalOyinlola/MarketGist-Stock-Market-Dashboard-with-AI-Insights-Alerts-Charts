@@ -41,7 +41,7 @@ export const sendWelcomeEmail = async ({
   const unsubscribeUrl = `${dashboardUrl}/unsubscribe`;
 
   const htmlTemplate = WELCOME_EMAIL_TEMPLATE.replace("{{name}}", escape(name))
-    .replace("{{intro}}", escape(intro))
+    .replace("{{intro}}", intro)
     .replace(/\{\{dashboardUrl\}\}/g, dashboardUrl)
     .replace(/\{\{unsubscribeUrl\}\}/g, unsubscribeUrl);
 

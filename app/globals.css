@@ -279,8 +279,12 @@
     @apply rounded-none my-3 px-1 w-full data-[selected=true]:bg-gray-600;
   }
 
+  .search-item-container {
+    @apply flex items-center gap-2 w-full pb-2;
+  }
+
   .search-item-link {
-    @apply px-2 w-full cursor-pointer border-b border-gray-600 last:border-b-0 transition-colors flex items-center gap-3;
+    @apply px-2 flex-1 cursor-pointer transition-colors flex items-center gap-3;
   }
 
   .search-item-name {

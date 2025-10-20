@@ -11,9 +11,11 @@ import {
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
 import Link from "next/link";
-import { StarIcon, TrendingUpIcon } from "lucide-react";
+import { TrendingUpIcon } from "lucide-react";
 import { searchStocks } from "@/lib/actions/finnhub.actions";
 import { useDebounce } from "@/hooks/useDebounce";
+import WatchlistButton from "./WatchlistButton";
+import { useWatchlist } from "./WatchlistProvider";
 
 export default function SearchCommand({
   renderAs = "button",
@@ -25,6 +27,7 @@ export default function SearchCommand({
   const [stocks, setStocks] =
     useState<StockWithWatchlistStatus[]>(initialStocks);
   const [loading, setLoading] = useState<boolean>(false);
+  const { isInWatchlist } = useWatchlist();
 
   const isSearchMode = !!searchTerm.trim();
   const displayStocks = isSearchMode ? stocks : stocks?.slice(0, 10);
@@ -66,6 +69,15 @@ export default function SearchCommand({
     setOpen(false);
     setSearchTerm("");
     setStocks(initialStocks);
+  };
+
+  const handleWatchlistChange = (symbol: string, isAdded: boolean) => {
+    // Reflect change locally for immediate UI; also source of truth is context
+    setStocks((prev) =>
+      prev.map((stock) =>
+        stock.symbol === symbol ? { ...stock, isInWatchlist: isAdded } : stock
+      )
+    );
   };
 
   return (
@@ -111,25 +123,29 @@ export default function SearchCommand({
 
               {displayStocks?.map((stock, i) => (
                 <li key={stock.symbol} className="search-item">
-                  <Link
-                    href={`/stocks/${stock.symbol}`}
-                    onClick={handleSelectStock}
-                    className="search-item-link"
-                  >
-                    <TrendingUpIcon className="h-4 w-4 text-gray-500" />
+                  <div className="search-item-container">
+                    <Link
+                      href={`/stocks/${stock.symbol}`}
+                      onClick={handleSelectStock}
+                      className="search-item-link"
+                    >
+                      <TrendingUpIcon className="h-4 w-4 text-gray-500" />
 
-                    <div className="flex-1">
-                      <div className="search-item-name">{stock.name}</div>
-                      <div className="text-sm text-gray-500">
-                        {stock.symbol} | {stock.exchange} | {stock.type}
+                      <div className="flex-1">
+                        <div className="search-item-name">{stock.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {stock.symbol} | {stock.exchange} | {stock.type}
+                        </div>
                       </div>
-                    </div>
-                    {stock.isInWatchlist ? (
-                      <StarIcon className="w-4 h-4 text-yellow-500 fill-current" />
-                    ) : (
-                      <StarIcon className="h-4 w-4 text-gray-500" />
-                    )}
-                  </Link>
+                    </Link>
+                    <WatchlistButton
+                      mode="icon"
+                      symbol={stock.symbol}
+                      company={stock.name}
+                      isInWatchlist={isInWatchlist(stock.symbol)}
+                      onWatchlistChange={handleWatchlistChange}
+                    />
+                  </div>
                   {i < displayStocks?.length - 1 && <CommandSeparator />}
                 </li>
               ))}

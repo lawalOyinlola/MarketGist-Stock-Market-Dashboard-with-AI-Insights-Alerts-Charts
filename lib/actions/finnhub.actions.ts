@@ -196,6 +196,26 @@ export const searchStocks = cache(
         results = Array.isArray(data?.result) ? data.result : [];
       }
 
+      // Get user's watchlist to check isInWatchlist status
+      let watchlistSymbols: string[] = [];
+      try {
+        const { getAuth } = await import("@/lib/better-auth/auth");
+        const { headers } = await import("next/headers");
+        const auth = await getAuth();
+        const session = await auth.api.getSession({ headers: await headers() });
+
+        if (session?.user?.email) {
+          const { getWatchlistSymbolsByEmail } = await import(
+            "@/lib/actions/watchlist.actions"
+          );
+          watchlistSymbols = await getWatchlistSymbolsByEmail(
+            session.user.email
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching watchlist for search:", error);
+      }
+
       const mapped: StockWithWatchlistStatus[] = results
         .map((r) => {
           const upper = (r.symbol || "").toUpperCase();
@@ -211,7 +231,7 @@ export const searchStocks = cache(
             name,
             exchange,
             type,
-            isInWatchlist: false,
+            isInWatchlist: watchlistSymbols.includes(upper),
           };
           return item;
         })
