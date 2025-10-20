@@ -4,6 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-app-color: var(--app-color);
+  --color-app-color-hover: var(--app-color-hover);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -45,6 +47,8 @@
 
 :root {
   --radius: 0.625rem;
+  --app-color: #baf33c;
+  --app-color-hover: #9ecf2e;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
@@ -79,6 +83,8 @@
 }
 
 .dark {
+  --app-color: #baf33c;
+  --app-color-hover: #9ecf2e;
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
@@ -236,11 +242,11 @@
   }
 
   .search-text {
-    @apply cursor-pointer hover:text-yellow-500;
+    @apply cursor-pointer hover:text-app-color;
   }
 
   .search-btn {
-    @apply cursor-pointer px-4 py-2 w-fit flex items-center gap-2 text-sm md:text-base bg-yellow-500 hover:bg-yellow-500 text-black font-medium rounded;
+    @apply cursor-pointer px-4 py-2 w-fit flex items-center gap-2 text-sm md:text-base bg-app-color hover:bg-app-color-hover text-black font-medium rounded;
   }
 
   .search-dialog {
@@ -279,8 +285,12 @@
     @apply rounded-none my-3 px-1 w-full data-[selected=true]:bg-gray-600;
   }
 
+  .search-item-container {
+    @apply flex items-center gap-2 w-full pb-2;
+  }
+
   .search-item-link {
-    @apply px-2 w-full cursor-pointer border-b border-gray-600 last:border-b-0 transition-colors flex items-center gap-3;
+    @apply px-2 flex-1 cursor-pointer transition-colors flex items-center gap-3;
   }
 
   .search-item-name {
@@ -296,7 +306,7 @@
   }
 
   .watchlist-btn {
-    @apply bg-yellow-500 text-base hover:bg-yellow-500 text-gray-900 w-full rounded h-11 font-semibold cursor-pointer;
+    @apply !bg-app-color text-base hover:text-app-color-hover text-gray-900 w-full rounded h-11 font-semibold cursor-pointer;
   }
 
   .watchlist-remove {
@@ -336,11 +346,11 @@
   }
 
   .watchlist-icon-btn {
-    @apply w-fit cursor-pointer hover:bg-transparent! text-gray-400 hover:text-yellow-500;
+    @apply w-fit cursor-pointer hover:bg-transparent! text-gray-400 hover:text-app-color;
   }
 
   .watchlist-icon-added {
-    @apply !text-yellow-500 hover:!text-yellow-600;
+    @apply !text-app-color hover:!text-app-color-hover/70;
   }
 
   .watchlist-icon {

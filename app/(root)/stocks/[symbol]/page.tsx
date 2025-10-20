@@ -9,7 +9,6 @@ import {
   COMPANY_FINANCIALS_WIDGET_CONFIG,
   MARKET_OVERVIEW_WIDGET_CONFIG,
 } from "@/lib/constants";
-import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 import { getAuth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -21,26 +20,17 @@ const StockDetails = async ({ params }: StockDetailsPageProps) => {
     notFound();
   }
 
-  // Get user session to check watchlist status
+  // Check watchlist status
   const auth = await getAuth();
   const session = await auth.api.getSession({ headers: await headers() });
 
-  let isInWatchlist = false;
-  if (session?.user?.email) {
-    const watchlistSymbols = await getWatchlistSymbolsByEmail(
-      session.user.email
-    );
-    isInWatchlist = watchlistSymbols.includes(symbol.toUpperCase());
-  }
-
-  // Get company name (you might want to fetch this from an API)
   const company = symbol; // This could be enhanced to fetch actual company name
 
   const scriptUrl = `https://s3.tradingview.com/external-embedding/embed-widget-`;
 
   return (
     <div className="min-h-screen">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
         <div className="md:col-span-full">
           <TradingViewWidget
             title={`Market Overview`}
@@ -51,7 +41,7 @@ const StockDetails = async ({ params }: StockDetailsPageProps) => {
           />
         </div>
         {/* Left Column */}
-        <div className="space-y-6">
+        <div className="space-y-6 col-span-2">
           {/* Symbol Info Widget */}
           <TradingViewWidget
             scriptUrl={`${scriptUrl}symbol-info.js`}
@@ -84,7 +74,7 @@ const StockDetails = async ({ params }: StockDetailsPageProps) => {
             <WatchlistButton
               symbol={symbol}
               company={company}
-              isInWatchlist={isInWatchlist}
+              isInWatchlist={false}
               mode="button"
             />
           </div>

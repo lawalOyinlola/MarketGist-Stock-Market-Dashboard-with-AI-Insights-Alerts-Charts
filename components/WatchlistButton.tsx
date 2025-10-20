@@ -4,11 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StarIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
-import {
-  addToWatchlist,
-  removeFromWatchlist,
-} from "@/lib/actions/watchlist.actions";
 import { Spinner } from "./ui/spinner";
+import { useWatchlist } from "./WatchlistProvider";
 
 const WatchlistButton = ({
   symbol,
@@ -19,33 +16,28 @@ const WatchlistButton = ({
   onWatchlistChange,
 }: WatchlistButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [inWatchlist, setInWatchlist] = useState(isInWatchlist);
+  const { isInWatchlist: checkWatchList, add, remove } = useWatchlist();
+  const inWatchlist = checkWatchList(symbol);
 
-  const handleToggleWatchlist = async () => {
+  const handleToggleWatchlist = async (
+    e?: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    // Prevent event propagation to avoid triggering parent click handlers
+    e?.stopPropagation();
+    e?.preventDefault();
+
     setIsLoading(true);
 
     try {
       if (inWatchlist) {
-        const result = await removeFromWatchlist(symbol);
-        if (result?.success === false) {
-          toast.error("Failed to remove from watchlist", {
-            description: result.error || "Please try again",
-          });
-          return;
-        }
-        setInWatchlist(false);
+        const removed = await remove(symbol);
+        if (!removed) return;
         toast.success("Removed from watchlist", {
           description: `${company} (${symbol}) has been removed from your watchlist`,
         });
       } else {
-        const result = await addToWatchlist(symbol, company);
-        if (result?.success === false) {
-          toast.error("Failed to add to watchlist", {
-            description: result.error || "Please try again",
-          });
-          return;
-        }
-        setInWatchlist(true);
+        const added = await add(symbol, company);
+        if (!added) return;
         toast.success("Added to watchlist", {
           description: `${company} (${symbol}) has been added to your watchlist`,
         });
@@ -67,7 +59,7 @@ const WatchlistButton = ({
       <Button
         variant="ghost"
         size="icon"
-        onClick={handleToggleWatchlist}
+        onClick={(e) => handleToggleWatchlist(e)}
         disabled={isLoading}
         className={`watchlist-icon-btn ${
           inWatchlist ? "watchlist-icon-added" : ""
@@ -89,7 +81,7 @@ const WatchlistButton = ({
 
   return (
     <Button
-      onClick={handleToggleWatchlist}
+      onClick={(e) => handleToggleWatchlist(e)}
       disabled={isLoading}
       className={`watchlist-btn ${inWatchlist ? "watchlist-remove" : ""}`}
     >

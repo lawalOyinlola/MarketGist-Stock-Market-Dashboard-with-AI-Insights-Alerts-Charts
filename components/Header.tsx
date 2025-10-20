@@ -5,17 +5,21 @@ import UserDropdown from "./UserDropdown";
 import { searchStocks } from "@/lib/actions/finnhub.actions";
 
 const Header = async ({ user }: { user: User }) => {
-  const initialStocks = await searchStocks();
+  const stocks = await searchStocks();
+  const initialStocks: StockWithWatchlistStatus[] = stocks.map((stock) => ({
+    ...stock,
+    isInWatchlist: false, // Will be updated by client context
+  }));
 
   return (
     <header className="sticky top-0 header">
       <div className="container header-wrapper">
         <Link href="/">
           <Image
-            src="/assets/icons/logo.svg"
+            src="/assets/images/logo-marketgist.png"
             alt="Marketgist Logo"
-            width={140}
-            height={32}
+            width={90}
+            height={20}
             className="h-8 w-auto cursor-pointer"
           />
         </Link>

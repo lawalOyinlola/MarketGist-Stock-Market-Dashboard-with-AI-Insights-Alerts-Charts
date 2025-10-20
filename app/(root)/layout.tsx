@@ -2,6 +2,8 @@ import Header from "@/components/Header";
 import { getAuth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { WatchlistProvider } from "@/components/WatchlistProvider";
+import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 
 const Layout = async ({ children }: { children: React.ReactNode }) => {
   const auth = await getAuth();
@@ -15,10 +17,17 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
     email: session.user.email,
   };
 
+  // Preload user's watchlist symbols to hydrate client store
+  const initialWatchlistSymbols = session.user.email
+    ? await getWatchlistSymbolsByEmail(session.user.email)
+    : [];
+
   return (
     <main className="min-h-screen text-gray-400">
-      <Header user={user} />
-      <div className="container py-10">{children}</div>
+      <WatchlistProvider initialSymbols={initialWatchlistSymbols}>
+        <Header user={user} />
+        <div className="container py-10">{children}</div>
+      </WatchlistProvider>
     </main>
   );
 };
