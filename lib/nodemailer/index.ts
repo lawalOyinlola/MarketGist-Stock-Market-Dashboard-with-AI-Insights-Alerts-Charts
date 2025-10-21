@@ -217,7 +217,10 @@ export const sendStockAlertLowerEmail = async ({
   const mailOptions = {
     from: `"Marketgist Alerts" <${process.env.NODEMAILER_EMAIL}>`,
     to: email,
-    subject: `📉 Price Alert: ${symbol} Hit Lower Target - $${currentPrice}`,
+    subject: `📉 Price Alert: ${symbol.replace(
+      /[\r\n]/g,
+      " "
+    )} Hit Lower Target - $${currentPrice}`,
     text: `Price Alert: ${symbol} (${company}) hit your lower target of $${targetPrice}. Current price: $${currentPrice}. Visit ${dashboardUrl} to view your dashboard.`,
     html: htmlTemplate,
   };

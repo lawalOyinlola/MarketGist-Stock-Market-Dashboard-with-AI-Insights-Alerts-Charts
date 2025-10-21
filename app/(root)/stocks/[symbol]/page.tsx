@@ -9,8 +9,6 @@ import {
   COMPANY_FINANCIALS_WIDGET_CONFIG,
   MARKET_OVERVIEW_WIDGET_CONFIG,
 } from "@/lib/constants";
-import { getAuth } from "@/lib/better-auth/auth";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 const StockDetails = async ({ params }: StockDetailsPageProps) => {
@@ -19,10 +17,6 @@ const StockDetails = async ({ params }: StockDetailsPageProps) => {
   if (!symbol) {
     notFound();
   }
-
-  // Check watchlist status
-  const auth = await getAuth();
-  const session = await auth.api.getSession({ headers: await headers() });
 
   const company = symbol; // This could be enhanced to fetch actual company name
 

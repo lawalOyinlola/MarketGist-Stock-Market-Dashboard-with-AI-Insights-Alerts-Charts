@@ -123,6 +123,9 @@ export const sendDailyNewsSummary = inngest.createFunction(
           articles = (articles || []).slice(0, 6);
           // If still empty, fallback to general
           if (!articles || articles.length === 0) {
+            console.log(
+              `No articles found for ${user.email}, trying general news...`
+            );
             articles = await getNews();
             articles = (articles || []).slice(0, 6);
           }
@@ -143,6 +146,26 @@ export const sendDailyNewsSummary = inngest.createFunction(
 
     for (const { user, articles } of results) {
       try {
+        // If no articles, provide fallback content
+        if (!articles || articles.length === 0) {
+          console.log(
+            `No articles found for ${user.email}, using fallback content`
+          );
+          const fallbackContent = `
+            <h3 class="mobile-news-title dark-text" style="margin: 30px 0 15px 0; font-size: 18px; font-weight: 600; color: #f8f9fa; line-height: 1.3;">📊 Market Update</h3>
+            <div class="dark-info-box" style="background-color: #212328; padding: 24px; margin: 20px 0; border-radius: 8px;">
+              <h4 class="dark-text" style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #FDD458; line-height: 1.4;">
+                Market Data Temporarily Unavailable
+              </h4>
+              <p class="dark-text-secondary" style="margin: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
+                We're experiencing temporary issues fetching the latest market news. Please check back later or visit your dashboard for real-time updates.
+              </p>
+            </div>
+          `;
+          userNewsSummaries.push({ user, newsContent: fallbackContent });
+          continue;
+        }
+
         const prompt = NEWS_SUMMARY_EMAIL_PROMPT.replace(
           "{{newsData}}",
           JSON.stringify(articles, null, 2)

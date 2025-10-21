@@ -40,11 +40,6 @@ export const PREFERRED_INDUSTRIES = [
   { value: "Consumer Goods", label: "Consumer Goods" },
 ];
 
-export const ALERT_TYPE_OPTIONS = [
-  { value: "upper", label: "Upper" },
-  { value: "lower", label: "Lower" },
-];
-
 export const CONDITION_OPTIONS = [
   { value: "greater", label: "Greater than (>)" },
   { value: "less", label: "Less than (<)" },
@@ -350,4 +345,16 @@ export const WATCHLIST_TABLE_HEADER = [
   "Market Cap",
   "P/E Ratio",
   "Action",
+];
+
+export const ALERT_TYPE_OPTIONS = [
+  { value: "upper", label: "Price Above" },
+  { value: "lower", label: "Price Below" },
+];
+
+export const FREQUENCY_OPTIONS = [
+  { value: "once", label: "Once" },
+  { value: "daily", label: "Once per day" },
+  { value: "hourly", label: "Once per hour" },
+  { value: "minute", label: "Once per minute" },
 ];

@@ -24,10 +24,10 @@ declare global {
 
   type FormInputProps = {
     name: string;
-    label: string;
-    placeholder: string;
+    label?: string;
+    placeholder?: string;
     type?: string;
-    register: UseFormRegister;
+    register?: UseFormRegister;
     error?: FieldError;
     validation?: RegisterOptions;
     disabled?: boolean;
@@ -78,6 +78,7 @@ declare global {
     name: string;
     exchange: string;
     type: string;
+    logo?: string;
   };
 
   type StockWithWatchlistStatus = Stock & {
@@ -119,6 +120,7 @@ declare global {
   type ProfileData = {
     name?: string;
     marketCapitalization?: number;
+    logo?: string;
   };
 
   type FinancialsData = {
@@ -146,6 +148,7 @@ declare global {
     changeFormatted?: string;
     marketCap?: string;
     peRatio?: string;
+    logo?: string;
   };
 
   type AlertsListProps = {
@@ -177,22 +180,6 @@ declare global {
     className?: string;
   };
 
-  type AlertData = {
-    symbol: string;
-    company: string;
-    alertName: string;
-    alertType: "upper" | "lower";
-    threshold: string;
-  };
-
-  type AlertModalProps = {
-    alertId?: string;
-    alertData?: AlertData;
-    action?: string;
-    open: boolean;
-    setOpen: (open: boolean) => void;
-  };
-
   type RawNewsArticle = {
     id: number;
     headline?: string;
@@ -205,15 +192,40 @@ declare global {
     related?: string;
   };
 
-  type Alert = {
+  // type Alert = {
+  //   id: string;
+  //   symbol: string;
+  //   company: string;
+  //   alertName: string;
+  //   currentPrice: number;
+  //   alertType: "upper" | "lower";
+  //   threshold: number;
+  //   changePercent?: number;
+  // };
+
+  type AlertData = {
     id: string;
     symbol: string;
     company: string;
     alertName: string;
-    currentPrice: number;
     alertType: "upper" | "lower";
     threshold: number;
-    changePercent?: number;
+    frequency: "once" | "daily" | "hourly" | "minute";
+  };
+
+  type AlertModalProps = {
+    symbol: string;
+    company: string;
+    currentPrice?: number;
+    existingAlerts: AlertData[];
+    open: boolean;
+    onClose: () => void;
+  };
+
+  type InputGroupFieldProps = FormInputProps & {
+    mode?: "input" | "textarea";
+    className?: string;
+    children?: React.ReactNode;
   };
 }
 
