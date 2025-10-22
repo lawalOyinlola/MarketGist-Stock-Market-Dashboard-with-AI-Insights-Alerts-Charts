@@ -218,7 +218,7 @@
   }
 
   .select-trigger {
-    @apply w-full !h-12 px-3 py-3 text-base border-gray-600 bg-gray-800 text-white rounded-lg focus:!border-yellow-500 focus:ring-0;
+    @apply w-full !h-12 px-3 py-3 text-base border-gray-600 bg-gray-800 text-white rounded-lg focus:!border-yellow-500 focus:ring-0 cursor-pointer;
   }
 
   .country-select-trigger {
@@ -306,11 +306,11 @@
   }
 
   .watchlist-btn {
-    @apply !bg-app-color text-base hover:text-app-color-hover text-gray-900 w-full rounded h-11 font-semibold cursor-pointer;
+    @apply !bg-app-color text-base hover:!bg-app-color-hover text-gray-900 w-full rounded h-11 font-semibold cursor-pointer;
   }
 
   .watchlist-remove {
-    @apply bg-red-500! hover:bg-red-500! text-gray-900!;
+    @apply !bg-red-500 hover:!bg-red-500/80 text-gray-900!;
   }
 
   .watchlist-empty-container {
@@ -577,4 +577,33 @@
 
 .scrollbar-hide-default::-webkit-scrollbar-thumb:hover {
   background-color: #9095a1;
+}
+
+/* Alert Button Styles */
+.alert-btn {
+  @apply bg-destructive/5 hover:bg-destructive/20 text-white transition-colors;
+}
+
+.alert-btn.alert-active {
+  @apply bg-destructive/30 hover:bg-destructive/40 text-white;
+}
+
+.alert-icon-btn {
+  @apply text-gray-400 hover:text-destructive hover:bg-destructive/20 transition-colors;
+}
+
+.alert-icon-btn.alert-icon-active {
+  @apply bg-destructive/5 hover:bg-destructive/20;
+}
+
+.alert-icon {
+  @apply w-4 h-4;
+}
+
+.alert-icon-filled {
+  @apply text-destructive fill-current;
+}
+
+.alert-icon-outline {
+  @apply text-gray-400;
 }

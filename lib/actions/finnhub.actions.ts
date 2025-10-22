@@ -43,6 +43,7 @@ export async function getNews(
     const range = getDateRange(5);
     const token = FINNHUB_API_KEY;
     if (!token) {
+      console.error("FINNHUB API key is not configured");
       throw new Error("FINNHUB API key is not configured");
     }
     const cleanSymbols = (symbols || [])
@@ -175,6 +176,8 @@ export const searchStocks = cache(async (query?: string): Promise<Stock[]> => {
             undefined;
           const exchange: string | undefined =
             (profile?.exchange as string) || undefined;
+          const logo: string | undefined =
+            (profile?.logo as string) || undefined;
           if (!name) return undefined;
           const r: FinnhubSearchResult = {
             symbol,
@@ -186,6 +189,7 @@ export const searchStocks = cache(async (query?: string): Promise<Stock[]> => {
           // To keep pipeline simple, attach exchange via closure map stage
           // We'll reconstruct exchange when mapping to final type
           (r as Record<string, unknown>).__exchange = exchange; // internal only
+          (r as Record<string, unknown>).__logo = logo; // internal only
           return r;
         })
         .filter((x): x is FinnhubSearchResult => Boolean(x));
@@ -205,6 +209,9 @@ export const searchStocks = cache(async (query?: string): Promise<Stock[]> => {
           (r.displaySymbol as string | undefined) || undefined;
         const exchangeFromProfile = (r as Record<string, unknown>)
           .__exchange as string | undefined;
+        const logoFromProfile = (r as Record<string, unknown>).__logo as
+          | string
+          | undefined;
         const exchange = exchangeFromDisplay || exchangeFromProfile || "US";
         const type = r.type || "Stock";
         const item: Stock = {
@@ -212,6 +219,7 @@ export const searchStocks = cache(async (query?: string): Promise<Stock[]> => {
           name,
           exchange,
           type,
+          logo: logoFromProfile,
         };
         return item;
       })
@@ -290,6 +298,7 @@ export const getWatchlistWithData = cache(
               peRatio: financials.metric?.peBasicExclExtraTTM
                 ? financials.metric.peBasicExclExtraTTM.toFixed(2)
                 : undefined,
+              logo: profile.logo || undefined,
             } as StockWithData;
           } catch (error) {
             console.error(`Error fetching data for ${symbol}:`, error);

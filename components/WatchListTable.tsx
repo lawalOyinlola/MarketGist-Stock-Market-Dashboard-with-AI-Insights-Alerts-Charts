@@ -1,6 +1,8 @@
 "use client";
 
 import WatchlistButton from "@/components/WatchlistButton";
+import AlertButton from "@/components/AlertButton";
+import AlertsPanel from "@/components/AlertsPanel";
 import { useWatchlist } from "@/components/WatchlistProvider";
 import { WATCHLIST_TABLE_HEADER } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -46,82 +48,82 @@ export default function WatchlistTable({ watchlist }: WatchlistTableProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
-      <div className="overflow-hidden rounded-md border !bg-gray-800 md:col-span-2 lg:col-span-5">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent bg-zinc-800">
-              {WATCHLIST_TABLE_HEADER.map((head) => (
-                <TableHead key={head} className="h-11 text-left">
-                  {head}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow key={`${row.symbol}-${row.userId}`}>
-                {/* Company (with watchlist button) */}
-                <TableCell className="text-left">
-                  <div className="flex items-center gap-2">
-                    <WatchlistButton
-                      mode="icon"
-                      symbol={row.symbol}
-                      company={row.company}
-                      isInWatchlist={isInWatchlist(row.symbol)}
-                    />
-                    <Link
-                      href={`/stocks/${row.symbol}`}
-                      className="font-medium hover:text-app-color/70 transition-colors"
-                    >
-                      {row.company}
-                    </Link>
-                  </div>
-                </TableCell>
-                {/* Symbol */}
-                <TableCell className="text-left">{row.symbol}</TableCell>
-                {/* Price */}
-                <TableCell className="text-left">
-                  {row.priceFormatted ??
-                    (row.currentPrice
-                      ? `$${row.currentPrice.toFixed(2)}`
-                      : "-")}
-                </TableCell>
-                {/* Change */}
-                <TableCell className="text-left">
-                  {row.changeFormatted ??
-                    (typeof row.changePercent === "number"
-                      ? `${
-                          row.changePercent > 0 ? "+" : ""
-                        }${row.changePercent.toFixed(2)}%`
-                      : "-")}
-                </TableCell>
-                {/* Market Cap */}
-                <TableCell className="text-left">
-                  {row.marketCap ?? "-"}
-                </TableCell>
-                {/* P/E Ratio */}
-                <TableCell className="text-left">
-                  {row.peRatio ?? "-"}
-                </TableCell>
-
-                {/* Action: Add/Remove Alert UI only */}
-                <TableCell className="text-left">
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="secondary">
-                      Add Alert
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      Remove Alert
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
+    <div className="overflow-hidden rounded-md border !bg-gray-800">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-gray-700 text-gray-400">
+            {WATCHLIST_TABLE_HEADER.map((head) => (
+              <TableHead key={head} className="h-11 text-left">
+                {head}
+              </TableHead>
             ))}
-          </TableBody>
-        </Table>
-      </div>
-      <div className="bg-amber-300 lg:col-span-2"></div>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow
+              key={`${row.symbol}-${row.userId}`}
+              className="*:text-left *:border-border [&>:not(:last-child)]:border-r"
+            >
+              {/* Company (with watchlist button) */}
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <WatchlistButton
+                    mode="icon"
+                    symbol={row.symbol}
+                    company={row.company}
+                    isInWatchlist={isInWatchlist(row.symbol)}
+                  />
+                  <Link
+                    href={`/stocks/${row.symbol}`}
+                    className="font-medium hover:text-app-color/70 transition-colors"
+                  >
+                    {row.company}
+                  </Link>
+                </div>
+              </TableCell>
+              {/* Symbol */}
+              <TableCell>{row.symbol}</TableCell>
+              {/* Price */}
+              <TableCell>
+                {row.priceFormatted ??
+                  (row.currentPrice ? `$${row.currentPrice.toFixed(2)}` : "-")}
+              </TableCell>
+              {/* Change */}
+              <TableCell
+                className={
+                  row.changeFormatted &&
+                  typeof row.changePercent === "number" &&
+                  row.changePercent > 0
+                    ? "text-green-400"
+                    : "text-red-400"
+                }
+              >
+                {row.changeFormatted ??
+                  (typeof row.changePercent === "number"
+                    ? `${
+                        row.changePercent > 0 ? "+" : ""
+                      }${row.changePercent.toFixed(2)}%`
+                    : "-")}
+              </TableCell>
+              {/* Market Cap */}
+              <TableCell>{row.marketCap ?? "-"}</TableCell>
+              {/* P/E Ratio */}
+              <TableCell>{row.peRatio ?? "-"}</TableCell>
+
+              {/* Action */}
+              <TableCell>
+                <AlertButton
+                  mode="button"
+                  symbol={row.symbol}
+                  company={row.company}
+                  currentPrice={row.currentPrice}
+                />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
