@@ -28,7 +28,7 @@ export async function getAlertsByEmail(email: string): Promise<AlertData[]> {
 
     const alerts = await Alert.find({ userId, isActive: true }).lean();
     return alerts.map((alert) => ({
-      id: alert._id.toString(),
+      id: (alert._id as any).toString(),
       symbol: alert.symbol,
       company: alert.company,
       alertName: alert.alertName,
@@ -51,6 +51,48 @@ export async function createAlert(
   frequency: "once" | "daily" | "hourly" | "minute" = "daily"
 ): Promise<{ success: boolean; error?: string; alertId?: string }> {
   try {
+    // Input validation
+    if (!symbol || typeof symbol !== "string") {
+      return {
+        success: false,
+        error: "Symbol is required and must be a string",
+      };
+    }
+
+    if (typeof threshold !== "number" || threshold <= 0) {
+      return { success: false, error: "Threshold must be a positive number" };
+    }
+
+    if (!alertType || !["upper", "lower"].includes(alertType)) {
+      return { success: false, error: "Alert type must be 'upper' or 'lower'" };
+    }
+
+    if (
+      frequency &&
+      !["once", "daily", "hourly", "minute"].includes(frequency)
+    ) {
+      return {
+        success: false,
+        error: "Frequency must be 'once', 'daily', 'hourly', or 'minute'",
+      };
+    }
+
+    // Normalize and sanitize inputs
+    const normalizedSymbol = symbol.toUpperCase().trim();
+    if (!normalizedSymbol) {
+      return { success: false, error: "Symbol cannot be empty" };
+    }
+
+    const sanitizedCompany =
+      company && typeof company === "string"
+        ? company.trim().substring(0, 100)
+        : "";
+
+    const sanitizedAlertName =
+      alertName && typeof alertName === "string"
+        ? alertName.trim().substring(0, 100)
+        : "";
+
     const mongoose = await connectToDatabase();
     const db = mongoose.connection.db;
     if (!db) throw new Error("MongoDB connection not found");
@@ -68,10 +110,9 @@ export async function createAlert(
     const userId = session.user.id;
 
     // Check if similar alert already exists
-    const normalized = symbol.toUpperCase().trim();
     const existing = await Alert.findOne({
       userId,
-      symbol: normalized,
+      symbol: normalizedSymbol,
       alertType,
       threshold,
       isActive: true,
@@ -81,19 +122,27 @@ export async function createAlert(
       return { success: false, error: "Similar alert already exists" };
     }
 
-    // Create alert
-    const alert = await Alert.create({
-      userId,
-      symbol: normalized,
-      company: company?.trim?.() || company,
-      alertName: alertName?.trim?.() || alertName,
-      alertType,
-      threshold,
-      frequency,
-      isActive: true,
-    });
+    // Create alert with race condition handling
+    try {
+      const alert = await Alert.create({
+        userId,
+        symbol: normalizedSymbol,
+        company: sanitizedCompany,
+        alertName: sanitizedAlertName,
+        alertType,
+        threshold,
+        frequency,
+        isActive: true,
+      });
 
-    return { success: true, alertId: alert._id.toString() };
+      return { success: true, alertId: alert._id.toString() };
+    } catch (createError: any) {
+      // Handle MongoDB duplicate key errors (race conditions)
+      if (createError.code === 11000) {
+        return { success: false, error: "Similar alert already exists" };
+      }
+      throw createError;
+    }
   } catch (error) {
     console.error("createAlert error:", error);
     return { success: false, error: "Failed to create alert" };
@@ -146,6 +195,50 @@ export async function updateAlert(
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Input validation
+    if (!alertId || typeof alertId !== "string") {
+      return {
+        success: false,
+        error: "Alert ID is required and must be a string",
+      };
+    }
+
+    if (!updates || typeof updates !== "object") {
+      return { success: false, error: "Updates must be an object" };
+    }
+
+    // Whitelist and validate allowed fields
+    const allowedFields: Record<string, any> = {};
+
+    if (updates.alertName !== undefined) {
+      if (typeof updates.alertName !== "string") {
+        return { success: false, error: "Alert name must be a string" };
+      }
+      allowedFields.alertName = updates.alertName.trim().substring(0, 100);
+    }
+
+    if (updates.threshold !== undefined) {
+      if (typeof updates.threshold !== "number" || updates.threshold <= 0) {
+        return { success: false, error: "Threshold must be a positive number" };
+      }
+      allowedFields.threshold = updates.threshold;
+    }
+
+    if (updates.frequency !== undefined) {
+      if (!["once", "daily", "hourly", "minute"].includes(updates.frequency)) {
+        return {
+          success: false,
+          error: "Frequency must be 'once', 'daily', 'hourly', or 'minute'",
+        };
+      }
+      allowedFields.frequency = updates.frequency;
+    }
+
+    // Check if any valid updates were provided
+    if (Object.keys(allowedFields).length === 0) {
+      return { success: false, error: "No valid updates provided" };
+    }
+
     const mongoose = await connectToDatabase();
     const db = mongoose.connection.db;
     if (!db) throw new Error("MongoDB connection not found");
@@ -162,10 +255,10 @@ export async function updateAlert(
 
     const userId = session.user.id;
 
-    // Update alert
+    // Update alert with only whitelisted fields
     const result = await Alert.updateOne(
       { _id: alertId, userId, isActive: true },
-      { $set: updates }
+      { $set: allowedFields }
     );
 
     if (result.modifiedCount === 0) {
@@ -178,4 +271,3 @@ export async function updateAlert(
     return { success: false, error: "Failed to update alert" };
   }
 }
-

@@ -30,7 +30,9 @@ const InputGroupField = ({
       { "opacity-50 cursor-not-allowed": disabled },
       error && "border-red-500 focus:border-red-500"
     ),
-    ...(register && validation ? register(name, validation) : {}),
+    "aria-invalid": !!error,
+    "aria-describedby": error ? `${name}-error` : undefined,
+    ...(register ? register(name, validation) : {}),
   };
 
   return (

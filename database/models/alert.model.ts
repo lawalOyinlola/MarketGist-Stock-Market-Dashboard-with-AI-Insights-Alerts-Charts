@@ -62,6 +62,15 @@ const AlertSchema = new Schema<AlertDocument>(
 AlertSchema.index({ userId: 1, symbol: 1 });
 AlertSchema.index({ symbol: 1, isActive: 1 });
 
+// Unique partial index to prevent duplicate active alerts
+AlertSchema.index(
+  { userId: 1, symbol: 1, alertType: 1, threshold: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { isActive: true },
+    name: "unique_active_alert_per_user_symbol_type_threshold",
+  }
+);
+
 export const Alert =
   mongoose.models.Alert || mongoose.model<AlertDocument>("Alert", AlertSchema);
-

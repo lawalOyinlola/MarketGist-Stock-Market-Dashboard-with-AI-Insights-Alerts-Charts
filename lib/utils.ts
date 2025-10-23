@@ -126,7 +126,10 @@ export const formatDateToday = new Date().toLocaleDateString("en-US", {
   timeZone: "UTC",
 });
 
-export const getAlertText = (alert: Alert) => {
+export const getAlertText = (alert: {
+  alertType: "upper" | "lower";
+  threshold: number;
+}) => {
   const condition = alert.alertType === "upper" ? ">" : "<";
   return `Price ${condition} ${formatPrice(alert.threshold)}`;
 };

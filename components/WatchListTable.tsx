@@ -117,7 +117,7 @@ export default function WatchlistTable({ watchlist }: WatchlistTableProps) {
                   mode="button"
                   symbol={row.symbol}
                   company={row.company}
-                  currentPrice={row.currentPrice}
+                  currentPrice={row.currentPrice ?? 0}
                 />
               </TableCell>
             </TableRow>

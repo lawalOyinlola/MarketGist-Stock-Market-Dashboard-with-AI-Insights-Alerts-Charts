@@ -1,3 +1,5 @@
+import type React from "react";
+
 declare global {
   type SignInFormData = {
     email: string;
@@ -178,6 +180,12 @@ declare global {
     buttonLabel?: string;
     buttonVariant?: "primary" | "secondary";
     className?: string;
+  };
+
+  type AlertSearchCommandProps = {
+    renderAs?: "button" | "text";
+    label?: string;
+    initialStocks: StockWithWatchlistStatus[];
   };
 
   type RawNewsArticle = {
