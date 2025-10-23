@@ -6,14 +6,6 @@ import { headers } from "next/headers";
 
 export async function GET(request: NextRequest) {
   try {
-    // Get user session
-    const auth = await getAuth();
-    const session = await auth.api.getSession({ headers: await headers() });
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // Get search query from URL params
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q") || undefined;
@@ -21,12 +13,24 @@ export async function GET(request: NextRequest) {
     // Fetch stock data (user-agnostic, cached)
     const stocks = await searchStocks(query);
 
-    // Get user's watchlist symbols
-    const watchlistSymbols = await getWatchlistSymbolsByEmail(
-      session.user.email
-    );
+    // Try to get user session for watchlist status (optional)
+    let watchlistSymbols: string[] = [];
+    try {
+      const auth = await getAuth();
+      const session = await auth.api.getSession({ headers: await headers() });
 
-    // Combine stock data with user's watchlist status
+      if (session?.user?.email) {
+        // Get user's watchlist symbols
+        watchlistSymbols = await getWatchlistSymbolsByEmail(session.user.email);
+      }
+    } catch (authError) {
+      // If authentication fails, continue without watchlist status
+      console.log(
+        "Authentication failed for search, continuing without watchlist status"
+      );
+    }
+
+    // Combine stock data with user's watchlist status (if available)
     const stocksWithWatchlistStatus = stocks.map((stock) => ({
       ...stock,
       isInWatchlist: watchlistSymbols.includes(stock.symbol),

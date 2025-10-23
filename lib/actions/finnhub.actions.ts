@@ -9,29 +9,94 @@ import {
 } from "@/lib/utils";
 import { POPULAR_STOCK_SYMBOLS } from "@/lib/constants";
 import { cache } from "react";
+import { apiRateLimiter } from "@/lib/utils/rateLimiter";
 
 const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 
 async function fetchJSON<T>(
   url: string,
-  revalidateSeconds?: number
+  revalidateSeconds?: number,
+  retries: number = 3
 ): Promise<T> {
   const options: RequestInit & { next?: { revalidate?: number } } =
     revalidateSeconds
       ? { cache: "force-cache", next: { revalidate: revalidateSeconds } }
       : { cache: "no-store" };
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10_000); // 10s
-  const res = await fetch(url, { ...options, signal: controller.signal });
-  clearTimeout(timeout);
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      // Check rate limit before making request
+      if (!apiRateLimiter.isAllowed("finnhub-api")) {
+        const waitTime = apiRateLimiter.getTimeUntilReset("finnhub-api");
+        console.log(
+          `Rate limit exceeded. Waiting ${Math.ceil(
+            waitTime / 1000
+          )} seconds...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      }
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Fetch failed ${res.status}: ${text}`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10_000); // 10s
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+
+        // Handle specific error cases
+        if (res.status === 403) {
+          console.error(
+            "Finnhub API 403 Error - Possible rate limit or quota exceeded"
+          );
+          if (attempt < retries) {
+            console.log(
+              `Retrying in ${
+                attempt * 2
+              } seconds... (attempt ${attempt}/${retries})`
+            );
+            await new Promise((resolve) => setTimeout(resolve, attempt * 2000));
+            continue;
+          }
+          throw new Error("API rate limit exceeded. Please try again later.");
+        }
+
+        if (res.status === 429) {
+          console.error("Finnhub API 429 Error - Rate limit exceeded");
+          if (attempt < retries) {
+            console.log(
+              `Retrying in ${
+                attempt * 2
+              } seconds... (attempt ${attempt}/${retries})`
+            );
+            await new Promise((resolve) => setTimeout(resolve, attempt * 2000));
+            continue;
+          }
+          throw new Error("API rate limit exceeded. Please try again later.");
+        }
+
+        if (res.status === 401) {
+          console.error("Finnhub API 401 Error - Invalid API key");
+          throw new Error(
+            "API authentication failed. Please check your API key."
+          );
+        }
+
+        throw new Error(`Fetch failed ${res.status}: ${text}`);
+      }
+
+      return (await res.json()) as T;
+    } catch (error) {
+      if (attempt === retries) {
+        throw error;
+      }
+      console.log(`Fetch attempt ${attempt} failed, retrying...`);
+      await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+    }
   }
-  return (await res.json()) as T;
+
+  throw new Error("All retry attempts failed");
 }
 
 export { fetchJSON };
@@ -260,26 +325,22 @@ export const getWatchlistWithData = cache(
       const watchlistData = await Promise.all(
         symbols.map(async (symbol) => {
           try {
-            // Fetch quote (price, change, change%)
+            // Fetch quote (price, change, change%), company profile (market cap, company name) and basic financial metrics (P/E ratio)
             const quoteUrl = `${FINNHUB_BASE_URL}/quote?symbol=${encodeURIComponent(
               symbol
             )}&token=${token}`;
-            const quote = await fetchJSON<QuoteData>(quoteUrl, 60);
-
-            // Fetch company profile (market cap, company name)
             const profileUrl = `${FINNHUB_BASE_URL}/stock/profile2?symbol=${encodeURIComponent(
               symbol
             )}&token=${token}`;
-            const profile = await fetchJSON<ProfileData>(profileUrl, 3600);
-
-            // Fetch basic financials (P/E ratio)
             const financialsUrl = `${FINNHUB_BASE_URL}/stock/metric?symbol=${encodeURIComponent(
               symbol
             )}&metric=all&token=${token}`;
-            const financials = await fetchJSON<FinancialsData>(
-              financialsUrl,
-              3600
-            );
+
+            const [quote, profile, financials] = await Promise.all([
+              fetchJSON<QuoteData>(quoteUrl, 60),
+              fetchJSON<ProfileData>(profileUrl, 3600),
+              fetchJSON<FinancialsData>(financialsUrl, 3600),
+            ]);
 
             return {
               userId: session.user.id,

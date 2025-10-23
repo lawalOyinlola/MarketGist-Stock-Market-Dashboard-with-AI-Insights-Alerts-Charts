@@ -16,6 +16,14 @@ import { useAlert } from "./AlertProvider";
 import { Spinner } from "./ui/spinner";
 import InputField from "./forms/InputField";
 import SelectField from "./forms/SelectField";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemFooter,
+  ItemTitle,
+} from "./ui/item";
 
 const AlertModal = ({
   symbol,
@@ -74,7 +82,6 @@ const AlertModal = ({
   });
 
   const watchedNewType = watchNew("alertType");
-  const watchedEditType = watchEdit("alertType");
 
   // Validation functions
   const validateThreshold = (value: string, alertType: "upper" | "lower") => {
@@ -171,7 +178,7 @@ const AlertModal = ({
 
         <div className="space-y-6">
           {/* Current Price Display */}
-          <div className="p-2 bg-gray- rounded-lg">
+          <div className="p-2 bg-gray-800 rounded-lg">
             <div className="text-sm text-gray-500/80">Current Price</div>
             <div className="text-2xl font-bold">
               ${currentPrice?.toFixed(2) || "N/A"}
@@ -239,20 +246,22 @@ const AlertModal = ({
                       </div>
                     </form>
                   ) : (
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">{alert.alertName}</div>
-                        <div
-                          className={`text-sm ${
+                    <Item size="sm" className="p-1">
+                      <ItemContent className="gap-0">
+                        <ItemTitle className="text-[16px]">
+                          {alert.alertName}
+                        </ItemTitle>
+                        <ItemDescription
+                          className={
                             alert.alertType === "upper"
                               ? "text-app-color/80"
                               : "text-destructive/80"
-                          }`}
+                          }
                         >
                           Price {alert.alertType === "upper" ? ">" : "<"} $
                           {alert.threshold}
-                        </div>
-                        <div className="text-xs text-gray-500">
+                        </ItemDescription>
+                        <ItemFooter className="text-xs text-gray-500">
                           {alert.frequency === "once"
                             ? "Once"
                             : alert.frequency === "daily"
@@ -260,9 +269,9 @@ const AlertModal = ({
                             : alert.frequency === "hourly"
                             ? "Once per hour"
                             : "Once per minute"}
-                        </div>
-                      </div>
-                      <div className="flex gap-1">
+                        </ItemFooter>
+                      </ItemContent>
+                      <ItemActions className="gap-2 *:!p-1">
                         <Button
                           size="sm"
                           variant="ghost"
@@ -278,8 +287,8 @@ const AlertModal = ({
                         >
                           <Trash2Icon className="w-4 h-4" />
                         </Button>
-                      </div>
-                    </div>
+                      </ItemActions>
+                    </Item>
                   )}
                 </div>
               ))}

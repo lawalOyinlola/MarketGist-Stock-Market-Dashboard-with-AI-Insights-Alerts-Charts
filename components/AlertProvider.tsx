@@ -79,62 +79,74 @@ export function AlertProvider({
       threshold: number,
       frequency: "once" | "daily" | "hourly" | "minute" = "daily"
     ) => {
-      const result = await createAlert(
-        symbol,
-        company,
-        alertName,
-        alertType,
-        threshold,
-        frequency
-      );
-
-      if (result.success && result.alertId) {
-        // We need to fetch the created alert to add to state
-        // For now, we'll create a temporary entry
-        const newAlert: AlertData = {
-          id: result.alertId,
-          symbol: symbol.toUpperCase(),
+      try {
+        const result = await createAlert(
+          symbol,
           company,
           alertName,
           alertType,
           threshold,
-          frequency,
-        };
+          frequency
+        );
 
-        setAlertsState((prev) => new Map(prev).set(result.alertId!, newAlert));
-        toast.success("Alert created", {
-          description: `${alertName} for ${symbol} has been created`,
+        if (result.success && result.alertId) {
+          // We need to fetch the created alert to add to state
+          // For now, we'll create a temporary entry
+          const newAlert: AlertData = {
+            id: result.alertId,
+            symbol: symbol.toUpperCase(),
+            company,
+            alertName,
+            alertType,
+            threshold,
+            frequency,
+          };
+
+          setAlertsState((prev) =>
+            new Map(prev).set(result.alertId!, newAlert)
+          );
+          toast.success("Alert created", {
+            description: `${alertName} for ${symbol} has been created`,
+          });
+          return true;
+        }
+
+        toast.error("Failed to create alert", {
+          description: result.error || "Please try again",
         });
-        return true;
+        return false;
+      } catch (e) {
+        toast.error("Failed to create alert", { description: "Network error" });
+        return false;
       }
-
-      toast.error("Failed to create alert", {
-        description: result.error || "Please try again",
-      });
-      return false;
     },
     []
   );
 
   const remove = useCallback(async (alertId: string) => {
-    const result = await removeAlert(alertId);
+    try {
+      const result = await removeAlert(alertId);
 
-    if (result.success) {
-      setAlertsState((prev) => {
-        const next = new Map(prev);
-        next.delete(alertId);
-        return next;
+      if (result.success) {
+        setAlertsState((prev) => {
+          const next = new Map(prev);
+          next.delete(alertId);
+          return next;
+        });
+        toast.success("Alert removed", {
+          description: "Alert has been removed successfully",
+        });
+        return true;
+      }
+
+      toast.error("Failed to remove alert", {
+        description: result.error || "Please try again",
       });
-      toast.success("Alert removed", {
-        description: "Alert has been removed successfully",
-      });
-      return true;
+      return false;
+    } catch (e) {
+      toast.error("Failed to remove alert", { description: "Network error" });
+      return false;
     }
-
-    toast.error("Failed to remove alert", {
-      description: result.error || "Please try again",
-    });
-    return false;
   }, []);
 
   const update = useCallback(
@@ -146,27 +158,32 @@ export function AlertProvider({
         frequency?: "once" | "daily" | "hourly" | "minute";
       }
     ) => {
-      const result = await updateAlert(alertId, updates);
+      try {
+        const result = await updateAlert(alertId, updates);
 
-      if (result.success) {
-        setAlertsState((prev) => {
-          const next = new Map(prev);
-          const existing = next.get(alertId);
-          if (existing) {
-            next.set(alertId, { ...existing, ...updates });
-          }
-          return next;
+        if (result.success) {
+          setAlertsState((prev) => {
+            const next = new Map(prev);
+            const existing = next.get(alertId);
+            if (existing) {
+              next.set(alertId, { ...existing, ...updates });
+            }
+            return next;
+          });
+          toast.success("Alert updated", {
+            description: "Alert has been updated successfully",
+          });
+          return true;
+        }
+
+        toast.error("Failed to update alert", {
+          description: result.error || "Please try again",
         });
-        toast.success("Alert updated", {
-          description: "Alert has been updated successfully",
-        });
-        return true;
+        return false;
+      } catch (e) {
+        toast.error("Failed to update alert", { description: "Network error" });
+        return false;
       }
-
-      toast.error("Failed to update alert", {
-        description: result.error || "Please try again",
-      });
-      return false;
     },
     []
   );
@@ -195,4 +212,3 @@ export function useAlert(): AlertContextValue {
   }
   return ctx;
 }
-

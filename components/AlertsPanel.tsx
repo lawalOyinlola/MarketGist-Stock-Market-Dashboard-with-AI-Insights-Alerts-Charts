@@ -94,8 +94,8 @@ const AlertsPanel = ({ watchlist }: { watchlist: StockWithData[] }) => {
                         {alert.company}
                       </ItemTitle>
                       <ItemDescription className="text-white font-semibold">
-                        {currentPrice
-                          ? `$${currentPrice.toFixed(2)}`
+                        {currentPrice ?? currentPrice === 0
+                          ? `$${Number(currentPrice).toFixed(2)}`
                           : `$${alert.threshold}`}
                       </ItemDescription>
                     </div>
@@ -174,18 +174,6 @@ const AlertsPanel = ({ watchlist }: { watchlist: StockWithData[] }) => {
           </ItemGroup>
         )}
       </div>
-
-      {/* Alert Modal */}
-      {selectedStock && (
-        <AlertModal
-          symbol={selectedStock.symbol}
-          company={selectedStock.company}
-          currentPrice={selectedStock.currentPrice}
-          existingAlerts={getAlertsForSymbol(selectedStock.symbol)}
-          open={isModalOpen}
-          onClose={handleCloseModal}
-        />
-      )}
     </div>
   );
 };

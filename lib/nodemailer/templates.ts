@@ -1,3 +1,15 @@
+export const NEWS_FALLBACK_CONTENT = `
+  <h3 class="mobile-news-title dark-text" style="margin: 30px 0 15px 0; font-size: 18px; font-weight: 600; color: #f8f9fa; line-height: 1.3;">📊 Market Update</h3>
+  <div class="dark-info-box" style="background-color: #212328; padding: 24px; margin: 20px 0; border-radius: 8px;">
+    <h4 class="dark-text" style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #FDD458; line-height: 1.4;">
+      Market Data Temporarily Unavailable
+    </h4>
+    <p class="dark-text-secondary" style="margin: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
+      We're experiencing temporary issues fetching the latest market news. Please check back later or visit your dashboard for real-time updates.
+    </p>
+  </div>
+`;
+
 export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -97,7 +109,7 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
@@ -260,7 +272,7 @@ export const NEWS_SUMMARY_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
@@ -410,7 +422,7 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
@@ -619,7 +631,7 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
@@ -819,7 +831,7 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
@@ -1042,7 +1054,7 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     

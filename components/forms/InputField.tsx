@@ -31,10 +31,17 @@ const InputField = ({
         className={cn("form-input", {
           "opacity-50 cursor-not-allowed": disabled,
         })}
-        {...register(name, validation)}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${name}-error` : undefined}
         {...props}
+        {...register(name, validation)}
       />
-      {error && <p className="text-sm text-red-500">{error.message}</p>}
+
+      {error && (
+        <p id={`${name}-error`} role="alert" className="text-sm text-red-500">
+          {error.message}
+        </p>
+      )}
     </div>
   );
 };

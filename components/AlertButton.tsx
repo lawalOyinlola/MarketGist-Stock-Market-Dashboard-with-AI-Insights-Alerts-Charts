@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BellIcon, BellRingIcon } from "lucide-react";
-import { toast } from "sonner";
 import { useAlert } from "./AlertProvider";
 import { Spinner } from "./ui/spinner";
 import AlertModal from "./AlertModal";
@@ -48,6 +47,8 @@ const AlertButton = ({
             hasActiveAlert ? "alert-icon-active" : ""
           }`}
           aria-label={hasActiveAlert ? "Manage alerts" : "Add alert"}
+          aria-haspopup="dialog"
+          aria-expanded={isModalOpen}
         >
           <div className="alert-icon">
             {hasActiveAlert ? (
@@ -77,6 +78,8 @@ const AlertButton = ({
         disabled={isLoading}
         className={`alert-btn ${hasActiveAlert ? "alert-active" : ""}`}
         size="sm"
+        aria-haspopup="dialog"
+        aria-expanded={isModalOpen}
       >
         {isLoading ? (
           <>
