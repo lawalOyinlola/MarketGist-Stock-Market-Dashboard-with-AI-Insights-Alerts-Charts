@@ -59,7 +59,11 @@ export async function createAlert(
       };
     }
 
-    if (typeof threshold !== "number" || threshold <= 0) {
+    if (
+      typeof threshold !== "number" ||
+      !Number.isFinite(threshold) ||
+      threshold <= 0
+    ) {
       return { success: false, error: "Threshold must be a positive number" };
     }
 
@@ -190,6 +194,7 @@ export async function updateAlert(
   alertId: string,
   updates: {
     alertName?: string;
+    alertType?: "upper" | "lower";
     threshold?: number;
     frequency?: "once" | "daily" | "hourly" | "minute";
   }
@@ -215,6 +220,16 @@ export async function updateAlert(
         return { success: false, error: "Alert name must be a string" };
       }
       allowedFields.alertName = updates.alertName.trim().substring(0, 100);
+    }
+
+    if (updates.alertType !== undefined) {
+      if (!["upper", "lower"].includes(updates.alertType)) {
+        return {
+          success: false,
+          error: "Alert type must be 'upper' or 'lower'",
+        };
+      }
+      allowedFields.alertType = updates.alertType;
     }
 
     if (updates.threshold !== undefined) {

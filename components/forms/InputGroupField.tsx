@@ -5,6 +5,7 @@ import {
   InputGroupTextarea,
 } from "@/components/ui/input-group";
 import { cn } from "@/lib/utils";
+import { Label } from "../ui/label";
 
 const InputGroupField = ({
   name,
@@ -20,37 +21,51 @@ const InputGroupField = ({
   className,
   children,
 }: InputGroupFieldProps) => {
-  const inputProps = {
+  const baseProps = {
     id: name,
     placeholder,
     disabled,
-    value,
     className: cn(
-      "form-input",
       { "opacity-50 cursor-not-allowed": disabled },
       error && "border-red-500 focus:border-red-500"
     ),
     "aria-invalid": !!error,
     "aria-describedby": error ? `${name}-error` : undefined,
-    ...(register ? register(name, validation) : {}),
-  };
+  } as const;
+
+  const reg = register ? register(name, validation) : undefined;
+  const inputProps = reg ? { ...baseProps, ...reg } : { ...baseProps, value };
 
   return (
     <div className={cn("space-y-2", className)}>
       {label && (
-        <label htmlFor={name} className="form-label">
+        <Label htmlFor={name} className="form-label">
           {label}
-        </label>
+        </Label>
       )}
-      <InputGroup className={cn("w-full", error && "border-red-500")}>
+      <InputGroup className={cn("form-input-group overflow-hidden")}>
         {children}
         {mode === "input" ? (
-          <InputGroupInput type={type} {...inputProps} />
+          <InputGroupInput
+            type={type}
+            {...inputProps}
+            className="input-group-input"
+          />
         ) : (
           <InputGroupTextarea {...inputProps} />
         )}
       </InputGroup>
-      {error && <p className="text-sm text-red-500">{error.message}</p>}
+
+      {error && (
+        <p
+          id={`${name}-error`}
+          role="alert"
+          aria-live="polite"
+          className="text-sm text-red-500"
+        >
+          {error.message}
+        </p>
+      )}
     </div>
   );
 };

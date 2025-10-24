@@ -1,23 +1,29 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import {
   INVESTMENT_GOALS,
   PREFERRED_INDUSTRIES,
   RISK_TOLERANCE_OPTIONS,
 } from "@/lib/constants";
 import { signUpWithEmail } from "@/lib/actions/auth.actions";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/forms/InputField";
+import InputGroupField from "@/components/forms/InputGroupField";
+import { InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
 import SelectField from "@/components/forms/SelectField";
 import { CountrySelectField } from "@/components/forms/CountrySelectField";
 import FooterLink from "@/components/forms/FooterLink";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 const SignUp = () => {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -94,11 +100,11 @@ const SignUp = () => {
           }}
         />
 
-        <InputField
+        <InputGroupField
           name="password"
           label="Password"
           placeholder="Enter a strong password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           register={register}
           error={errors.password}
           validation={{
@@ -108,7 +114,23 @@ const SignUp = () => {
               message: "Password must be at least 8 characters long",
             },
           }}
-        />
+        >
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="input-group-addon"
+              aria-label="Toggle password visibility"
+              title={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? (
+                <EyeIcon className="size-4" />
+              ) : (
+                <EyeOffIcon className="size-4" />
+              )}
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroupField>
 
         <CountrySelectField
           name="country"
@@ -153,7 +175,7 @@ const SignUp = () => {
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="yellow-btn w-full mt-5"
+          className="auth-btn w-full mt-5"
         >
           {isSubmitting && <Spinner />}
           {isSubmitting ? "Creating Account" : "Start Your Investing Journey"}
