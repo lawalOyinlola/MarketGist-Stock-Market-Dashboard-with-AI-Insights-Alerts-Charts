@@ -30,8 +30,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ErrorBoundary>{children}</ErrorBoundary>
         <ErrorBoundary>
-          {children}
           <Toaster />
         </ErrorBoundary>
       </body>

@@ -74,8 +74,10 @@ function InputGroupAddon({
           return;
         }
         // focus on input or textarea
-
-        e.currentTarget.parentElement?.querySelector("input")?.focus();
+        const control = e.currentTarget.parentElement?.querySelector<
+          HTMLInputElement | HTMLTextAreaElement
+        >("input, textarea");
+        control?.focus();
       }}
       {...props}
     />

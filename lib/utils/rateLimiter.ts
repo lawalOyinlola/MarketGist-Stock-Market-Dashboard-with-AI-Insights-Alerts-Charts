@@ -15,6 +15,12 @@ class RateLimiter {
 
     // Remove old requests outside the window
     const validRequests = requests.filter((time) => now - time < this.windowMs);
+    if (validRequests.length === 0) {
+      this.requests.delete(key);
+      // Record first use
+      this.requests.set(key, [now]);
+      return true;
+    }
 
     if (validRequests.length >= this.maxRequests) {
       return false;
@@ -28,13 +34,16 @@ class RateLimiter {
   }
 
   getTimeUntilReset(key: string): number {
+    const now = Date.now();
     const requests = this.requests.get(key) || [];
-    if (requests.length === 0) return 0;
-
-    const oldestRequest = Math.min(...requests);
-    return Math.max(0, this.windowMs - (Date.now() - oldestRequest));
+    const validRequests = requests.filter((time) => now - time < this.windowMs);
+    if (validRequests.length === 0) {
+      this.requests.delete(key);
+      return 0;
+    }
+    const oldestRequest = Math.min(...validRequests);
+    return Math.max(0, this.windowMs - (now - oldestRequest));
   }
 }
 
 export const apiRateLimiter = new RateLimiter(50, 60000); // 50 requests per minute
-

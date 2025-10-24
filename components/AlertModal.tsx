@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Dialog,
@@ -24,6 +24,8 @@ import {
   ItemFooter,
   ItemTitle,
 } from "./ui/item";
+import InputGroupField from "./forms/InputGroupField";
+import { InputGroupAddon, InputGroupText } from "./ui/input-group";
 
 const AlertModal = ({
   symbol,
@@ -32,10 +34,23 @@ const AlertModal = ({
   existingAlerts,
   open,
   onClose,
+  editAlertId,
 }: AlertModalProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [editingAlertId, setEditingAlertId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<
+    "create" | "edit" | "delete" | null
+  >(null);
+  const [editingAlertId, setEditingAlertId] = useState<string | null>(
+    editAlertId || null
+  );
   const { add, remove, update } = useAlert();
+
+  // Check if we're in edit mode
+  const isEditMode = !!editAlertId;
+
+  // Find the alert to edit
+  const alertToEdit = editAlertId
+    ? existingAlerts.find((alert) => alert.id === editAlertId)
+    : null;
 
   // Form for new alert
   const {
@@ -83,8 +98,27 @@ const AlertModal = ({
 
   const watchedNewType = watchNew("alertType");
 
+  // Initialize edit form when editAlertId is provided
+  useEffect(() => {
+    if (editAlertId && alertToEdit) {
+      setEditingAlertId(editAlertId);
+      resetEdit({
+        alertName: alertToEdit.alertName,
+        alertType: alertToEdit.alertType,
+        threshold: alertToEdit.threshold.toString(),
+        frequency: alertToEdit.frequency,
+      });
+    }
+  }, [editAlertId, alertToEdit]);
+
   // Validation functions
   const validateThreshold = (value: string, alertType: "upper" | "lower") => {
+    // First check if the input matches the number pattern (max 2 decimal places)
+    const numberPattern = /^[0-9]+(\.[0-9]{1,2})?$/;
+    if (!numberPattern.test(value.trim())) {
+      return "Please enter a valid number with max 2 decimal places (e.g., 140 or 140.50)";
+    }
+
     const numValue = parseFloat(value);
     if (isNaN(numValue) || numValue <= 0) {
       return "Threshold must be a positive number";
@@ -107,7 +141,7 @@ const AlertModal = ({
 
   const handleCreateAlert = handleSubmitNew(async (data) => {
     const thresholdValue = parseFloat(data.threshold);
-    setIsLoading(true);
+    setIsLoading("create");
     try {
       await add(
         symbol,
@@ -119,16 +153,16 @@ const AlertModal = ({
       );
       resetNew();
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   });
 
   const handleRemoveAlert = async (alertId: string) => {
-    setIsLoading(true);
+    setIsLoading("delete");
     try {
       await remove(alertId);
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
@@ -136,17 +170,22 @@ const AlertModal = ({
     const thresholdValue = parseFloat(data.threshold);
     if (!editingAlertId) return;
 
-    setIsLoading(true);
+    setIsLoading("edit");
     try {
       await update(editingAlertId, {
         alertName: data.alertName,
+        alertType: data.alertType,
         threshold: thresholdValue,
         frequency: data.frequency,
       });
       setEditingAlertId(null);
       resetEdit();
+      // Close modal after successful save in edit mode
+      if (isEditMode) {
+        onClose();
+      }
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   });
 
@@ -164,19 +203,25 @@ const AlertModal = ({
   const cancelEditing = () => {
     setEditingAlertId(null);
     resetEdit();
+    // Close modal when cancel is clicked in edit mode
+    if (isEditMode) {
+      onClose();
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md !bg-gray-800">
+      <DialogContent className="sm:max-w-md !bg-gray-800 max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Price Alert</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Alert" : "Price Alert"}</DialogTitle>
           <DialogDescription>
-            Set up price alerts for {company} ({symbol})
+            {isEditMode
+              ? `Edit alert for ${company} (${symbol})`
+              : `Set up price alerts for ${company} (${symbol})`}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="flex-1 overflow-y-auto space-y-6 pr-2">
           {/* Current Price Display */}
           <div className="p-2 bg-gray-800 rounded-lg">
             <div className="text-sm text-gray-500/80">Current Price</div>
@@ -188,8 +233,14 @@ const AlertModal = ({
           {/* Existing Alerts */}
           {existingAlerts.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-sm font-medium">Latest Alerts</h3>
-              {existingAlerts.slice(0, 2).map((alert: any) => (
+              <h3 className="text-sm font-medium">
+                {isEditMode ? "Edit Alert" : "Latest Alerts"}
+              </h3>
+
+              {(isEditMode && alertToEdit
+                ? [alertToEdit]
+                : existingAlerts.slice().reverse().slice(0, 2)
+              ).map((alert: any) => (
                 <div key={alert.id} className="p-3 border rounded-lg">
                   {editingAlertId === alert.id ? (
                     <form onSubmit={handleEditAlert} className="space-y-4">
@@ -208,20 +259,44 @@ const AlertModal = ({
                         }}
                         value={watchEdit("alertName")}
                       />
-                      <InputField
+                      <SelectField
+                        name="alertType"
+                        label="Alert Type"
+                        placeholder="Select alert type"
+                        options={ALERT_TYPE_OPTIONS}
+                        control={controlEdit}
+                        error={errorsEdit.alertType}
+                        required
+                      />
+
+                      <InputGroupField
                         name="threshold"
                         label="Threshold Value"
-                        placeholder="e.g., 140"
-                        type="number"
+                        placeholder="e.g., 140.50"
                         register={registerEdit}
                         error={errorsEdit.threshold}
                         validation={{
                           required: "Threshold is required",
+                          pattern: {
+                            value: /^[0-9]+(\.[0-9]{1,2})?$/,
+                            message:
+                              "Please enter a valid number with max 2 decimal places (e.g., 140 or 140.50)",
+                          },
                           validate: (value: string) =>
-                            validateThreshold(value, alert.alertType),
+                            validateThreshold(value, watchEdit("alertType")),
                         }}
                         value={watchEdit("threshold")}
-                      />
+                      >
+                        <InputGroupAddon>
+                          <InputGroupText className="text-app-color text-base">
+                            $
+                          </InputGroupText>
+                        </InputGroupAddon>
+                        <InputGroupAddon align="inline-end">
+                          <InputGroupText>USD</InputGroupText>
+                        </InputGroupAddon>
+                      </InputGroupField>
+
                       <SelectField
                         name="frequency"
                         label="Frequency"
@@ -232,7 +307,11 @@ const AlertModal = ({
                         required
                       />
                       <div className="flex gap-2 mt-6">
-                        <Button type="submit" size="sm" disabled={isLoading}>
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={isLoading === "edit"}
+                        >
                           {isLoading ? <Spinner /> : "Save"}
                         </Button>
                         <Button
@@ -240,6 +319,7 @@ const AlertModal = ({
                           size="sm"
                           variant="outline"
                           onClick={cancelEditing}
+                          disabled={isLoading === "edit"}
                         >
                           Cancel
                         </Button>
@@ -276,6 +356,7 @@ const AlertModal = ({
                           size="sm"
                           variant="ghost"
                           onClick={() => startEditing(alert)}
+                          disabled={isLoading === "edit"}
                         >
                           <EditIcon className="w-4 h-4" />
                         </Button>
@@ -283,7 +364,7 @@ const AlertModal = ({
                           size="sm"
                           variant="ghost"
                           onClick={() => handleRemoveAlert(alert.id)}
-                          disabled={isLoading}
+                          disabled={isLoading === "delete"}
                         >
                           <Trash2Icon className="w-4 h-4" />
                         </Button>
@@ -296,80 +377,99 @@ const AlertModal = ({
           )}
 
           {/* Create New Alert */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Create New Alert</h3>
+          {!isEditMode && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium">Create New Alert</h3>
 
-            <form onSubmit={handleCreateAlert} className="space-y-4">
-              <InputField
-                name="alertName"
-                label="Alert Name"
-                placeholder="e.g., Apple at Discount"
-                register={registerNew}
-                error={errorsNew.alertName}
-                validation={{
-                  required: "Alert name is required",
-                  minLength: {
-                    value: 2,
-                    message: "Alert name must be at least 2 characters",
-                  },
-                }}
-                value={watchNew("alertName")}
-              />
+              <form onSubmit={handleCreateAlert} className="space-y-4">
+                <InputField
+                  name="alertName"
+                  label="Alert Name"
+                  placeholder="e.g., Apple at Discount"
+                  register={registerNew}
+                  error={errorsNew.alertName}
+                  validation={{
+                    required: "Alert name is required",
+                    minLength: {
+                      value: 2,
+                      message: "Alert name must be at least 2 characters",
+                    },
+                  }}
+                  value={watchNew("alertName")}
+                />
 
-              <SelectField
-                name="alertType"
-                label="Alert Type"
-                placeholder="Select alert type"
-                options={ALERT_TYPE_OPTIONS}
-                control={controlNew}
-                error={errorsNew.alertType}
-                required
-              />
+                <SelectField
+                  name="alertType"
+                  label="Alert Type"
+                  placeholder="Select alert type"
+                  options={ALERT_TYPE_OPTIONS}
+                  control={controlNew}
+                  error={errorsNew.alertType}
+                  required
+                />
 
-              <InputField
-                name="threshold"
-                label="Threshold Value"
-                placeholder="e.g., 140"
-                type="number"
-                register={registerNew}
-                error={errorsNew.threshold}
-                validation={{
-                  required: "Threshold is required",
-                  validate: (value: string) =>
-                    validateThreshold(value, watchedNewType),
-                }}
-                value={watchNew("threshold")}
-              />
+                <InputGroupField
+                  name="threshold"
+                  label="Threshold Value"
+                  placeholder="e.g., 140.50"
+                  register={registerNew}
+                  error={errorsNew.threshold}
+                  validation={{
+                    required: "Threshold is required",
+                    pattern: {
+                      value: /^[0-9]+(\.[0-9]{1,2})?$/,
+                      message:
+                        "Please enter a valid number with max 2 decimal places (e.g., 140 or 140.50)",
+                    },
+                    validate: (value: string) =>
+                      validateThreshold(value, watchedNewType),
+                  }}
+                  value={watchNew("threshold")}
+                >
+                  <InputGroupAddon>
+                    <InputGroupText className="text-app-color text-base">
+                      $
+                    </InputGroupText>
+                  </InputGroupAddon>
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupText>USD</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroupField>
 
-              <SelectField
-                name="frequency"
-                label="Frequency"
-                placeholder="Select frequency"
-                options={FREQUENCY_OPTIONS}
-                control={controlNew}
-                error={errorsNew.frequency}
-                required
-              />
+                <SelectField
+                  name="frequency"
+                  label="Frequency"
+                  placeholder="Select frequency"
+                  options={FREQUENCY_OPTIONS}
+                  control={controlNew}
+                  error={errorsNew.frequency}
+                  required
+                />
 
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="group watchlist-btn !rounded-lg"
-              >
-                {isLoading ? (
-                  <>
-                    <Spinner />
-                    Creating Alert...
-                  </>
-                ) : (
-                  <>
-                    <BellIcon className="w-4 h-4 group-hover:fill-current transition-all duration-300" />
-                    Create Alert
-                  </>
-                )}
-              </Button>
-            </form>
-          </div>
+                <Button
+                  type="submit"
+                  disabled={!!isLoading}
+                  className="group watchlist-btn !rounded-lg"
+                >
+                  {!!isLoading ? (
+                    <>
+                      <Spinner />
+                      {isLoading === "edit"
+                        ? "Updating Alert..."
+                        : isLoading === "create"
+                        ? "Creating Alert..."
+                        : "Deleting Alert..."}
+                    </>
+                  ) : (
+                    <>
+                      <BellIcon className="w-4 h-4 group-hover:fill-current transition-all duration-300" />
+                      Create Alert
+                    </>
+                  )}
+                </Button>
+              </form>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

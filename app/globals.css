@@ -157,8 +157,8 @@
     @apply flex justify-center items-center;
   }
 
-  .yellow-btn {
-    @apply h-12 cursor-pointer bg-gradient-to-b from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-gray-950 font-medium text-base rounded-lg shadow-lg disabled:opacity-50;
+  .auth-btn {
+    @apply h-12 cursor-pointer bg-app-color hover:bg-app-color-hover text-primary-foreground font-medium text-base rounded-lg shadow-lg disabled:opacity-50 w-full;
   }
 
   .home-wrapper {
@@ -217,6 +217,18 @@
     @apply h-12 px-3 py-3 text-white text-base placeholder:text-gray-500 border-gray-600 bg-gray-800 rounded-lg focus:!border-yellow-500 focus:ring-0;
   }
 
+  .form-input-group {
+    @apply h-12 text-white text-base placeholder:text-gray-500 border-gray-600 bg-gray-800 rounded-lg focus:!border-yellow-500 focus:ring-0;
+  }
+
+  .input-group-input {
+    @apply h-12 py-3;
+  }
+
+  .input-group-addon {
+    @apply h-12 py-3 rounded-none hover:bg-transparent!;
+  }
+
   .select-trigger {
     @apply w-full !h-12 px-3 py-3 text-base border-gray-600 bg-gray-800 text-white rounded-lg focus:!border-yellow-500 focus:ring-0 cursor-pointer;
   }
@@ -238,11 +250,11 @@
   }
 
   .footer-link {
-    @apply text-gray-400 font-medium hover:text-yellow-400 hover:underline transition-colors;
+    @apply text-gray-400 font-medium hover:text-app-color-hover hover:underline transition-colors;
   }
 
   .search-text {
-    @apply cursor-pointer hover:text-app-color;
+    @apply cursor-pointer hover:text-app-color-hover p-0;
   }
 
   .search-btn {
@@ -282,7 +294,7 @@
   }
 
   .search-item {
-    @apply rounded-none my-3 px-1 w-full data-[selected=true]:bg-gray-600;
+    @apply rounded-none my-3 px-1 w-full data-[selected=true]:bg-gray-600 hover:bg-gray-700/40;
   }
 
   .search-item-container {

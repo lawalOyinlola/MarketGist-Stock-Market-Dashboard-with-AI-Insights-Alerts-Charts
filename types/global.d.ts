@@ -59,7 +59,7 @@ declare global {
 
   type SearchCommandProps = {
     renderAs?: "button" | "text";
-    label?: string;
+    label?: string | React.ReactNode;
     initialStocks: StockWithWatchlistStatus[];
   };
 
@@ -183,8 +183,9 @@ declare global {
   };
 
   type AlertSearchCommandProps = {
+    type?: "navigation" | "alert";
     renderAs?: "button" | "text";
-    label?: string;
+    label?: string | React.ReactNode;
     initialStocks: StockWithWatchlistStatus[];
   };
 
@@ -199,17 +200,6 @@ declare global {
     category?: string;
     related?: string;
   };
-
-  // type Alert = {
-  //   id: string;
-  //   symbol: string;
-  //   company: string;
-  //   alertName: string;
-  //   currentPrice: number;
-  //   alertType: "upper" | "lower";
-  //   threshold: number;
-  //   changePercent?: number;
-  // };
 
   type AlertData = {
     id: string;
@@ -228,6 +218,7 @@ declare global {
     existingAlerts: AlertData[];
     open: boolean;
     onClose: () => void;
+    editAlertId?: string;
   };
 
   type InputGroupFieldProps = FormInputProps & {

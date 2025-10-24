@@ -6,70 +6,103 @@ import {
   useContext,
   useMemo,
   useState,
+  useEffect,
 } from "react";
 import { toast } from "sonner";
 import {
   addToWatchlist,
   removeFromWatchlist,
 } from "@/lib/actions/watchlist.actions";
+import { getWatchlistWithData } from "@/lib/actions/finnhub.actions";
 
 type WatchlistContextValue = {
   symbols: Set<string>;
+  watchlistData: StockWithData[];
+  isLoading: boolean;
   isInWatchlist: (symbol: string) => boolean;
   add: (symbol: string, company?: string) => Promise<boolean>;
   remove: (symbol: string) => Promise<boolean>;
   toggle: (symbol: string, company?: string) => Promise<boolean>;
+  refreshWatchlist: () => Promise<void>;
 };
 
 const WatchlistContext = createContext<WatchlistContextValue | null>(null);
 
 export function WatchlistProvider({
   initialSymbols = [],
+  initialWatchlistData = [],
   children,
 }: {
   initialSymbols?: string[];
+  initialWatchlistData?: StockWithData[];
   children: React.ReactNode;
 }) {
   const [symbolsState, setSymbolsState] = useState<Set<string>>(
     () => new Set(initialSymbols.map((s) => s.toUpperCase().trim()))
   );
+  const [watchlistData, setWatchlistData] =
+    useState<StockWithData[]>(initialWatchlistData);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isInWatchlist = useCallback(
     (symbol: string) => symbolsState.has(symbol.toUpperCase().trim()),
     [symbolsState]
   );
 
-  const add = useCallback(async (symbol: string, company?: string) => {
-    const normalized = symbol.toUpperCase().trim();
-    if (!normalized) return false;
-    const result = await addToWatchlist(normalized, company || normalized);
-    if (result?.success) {
-      setSymbolsState((prev) => new Set(prev).add(normalized));
-      return true;
+  const refreshWatchlist = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await getWatchlistWithData();
+      setWatchlistData(data);
+    } catch (error) {
+      console.error("Failed to refresh watchlist:", error);
+      toast.error("Failed to refresh watchlist data");
+    } finally {
+      setIsLoading(false);
     }
-    toast.error("Failed to add to watchlist", {
-      description: result?.error || "Please try again",
-    });
-    return false;
   }, []);
 
-  const remove = useCallback(async (symbol: string) => {
-    const normalized = symbol.toUpperCase().trim();
-    if (!normalized) return false;
-    const result = await removeFromWatchlist(normalized);
-    if (result?.success) {
-      setSymbolsState((prev) => {
-        const next = new Set(prev);
-        next.delete(normalized);
-        return next;
+  const add = useCallback(
+    async (symbol: string, company?: string) => {
+      const normalized = symbol.toUpperCase().trim();
+      if (!normalized) return false;
+      const result = await addToWatchlist(normalized, company || normalized);
+      if (result?.success) {
+        setSymbolsState((prev) => new Set(prev).add(normalized));
+        // Refresh watchlist data to get the new stock with all its data
+        await refreshWatchlist();
+        return true;
+      }
+      toast.error("Failed to add to watchlist", {
+        description: result?.error || "Please try again",
       });
-      return true;
-    }
-    toast.error("Failed to remove from watchlist", {
-      description: result?.error || "Please try again",
-    });
-    return false;
-  }, []);
+      return false;
+    },
+    [refreshWatchlist]
+  );
+
+  const remove = useCallback(
+    async (symbol: string) => {
+      const normalized = symbol.toUpperCase().trim();
+      if (!normalized) return false;
+      const result = await removeFromWatchlist(normalized);
+      if (result?.success) {
+        setSymbolsState((prev) => {
+          const next = new Set(prev);
+          next.delete(normalized);
+          return next;
+        });
+        // Refresh watchlist data to remove the stock from the table
+        await refreshWatchlist();
+        return true;
+      }
+      toast.error("Failed to remove from watchlist", {
+        description: result?.error || "Please try again",
+      });
+      return false;
+    },
+    [refreshWatchlist]
+  );
 
   const toggle = useCallback(
     async (symbol: string, company?: string) => {
@@ -82,8 +115,26 @@ export function WatchlistProvider({
   );
 
   const value = useMemo<WatchlistContextValue>(
-    () => ({ symbols: symbolsState, isInWatchlist, add, remove, toggle }),
-    [symbolsState, isInWatchlist, add, remove, toggle]
+    () => ({
+      symbols: symbolsState,
+      watchlistData,
+      isLoading,
+      isInWatchlist,
+      add,
+      remove,
+      toggle,
+      refreshWatchlist,
+    }),
+    [
+      symbolsState,
+      watchlistData,
+      isLoading,
+      isInWatchlist,
+      add,
+      remove,
+      toggle,
+      refreshWatchlist,
+    ]
   );
 
   return (

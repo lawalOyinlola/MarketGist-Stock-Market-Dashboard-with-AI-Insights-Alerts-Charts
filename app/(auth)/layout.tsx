@@ -41,6 +41,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
                 <Image
                   src="/assets/icons/star.svg"
                   alt="Star"
+                  aria-hidden="true"
                   key={star}
                   width={20}
                   height={20}

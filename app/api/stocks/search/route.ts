@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       }
     } catch (authError) {
       // If authentication fails, continue without watchlist status
-      console.log(
+      console.warn(
         "Authentication failed for search, continuing without watchlist status"
       );
     }
@@ -36,7 +36,9 @@ export async function GET(request: NextRequest) {
       isInWatchlist: watchlistSymbols.includes(stock.symbol),
     }));
 
-    return NextResponse.json(stocksWithWatchlistStatus);
+    return NextResponse.json(stocksWithWatchlistStatus, {
+      headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     console.error("Search API error:", error);
     return NextResponse.json(

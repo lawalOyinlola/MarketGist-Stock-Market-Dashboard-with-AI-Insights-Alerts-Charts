@@ -14,9 +14,6 @@ const { NODEMAILER_EMAIL, NODEMAILER_PASSWORD } = process.env;
 export const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: { user: NODEMAILER_EMAIL, pass: NODEMAILER_PASSWORD },
-  tls: {
-    rejectUnauthorized: false,
-  },
 });
 
 const sanitizeRich = (html: string) =>

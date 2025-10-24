@@ -29,7 +29,9 @@ class ErrorBoundary extends React.Component<
     console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
+  private resetKey = 0;
   resetError = () => {
+    this.resetKey += 1;
     this.setState({ hasError: false, error: undefined });
   };
 
@@ -46,7 +48,11 @@ class ErrorBoundary extends React.Component<
       }
 
       return (
-        <div className="flex flex-col items-center justify-center p-8 text-center">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="flex flex-col items-center justify-center p-8 text-center"
+        >
           <h2 className="text-xl font-semibold text-red-600 mb-4">
             Something went wrong
           </h2>
@@ -63,9 +69,10 @@ class ErrorBoundary extends React.Component<
       );
     }
 
-    return this.props.children;
+    return (
+      <React.Fragment key={this.resetKey}>{this.props.children}</React.Fragment>
+    );
   }
 }
 
 export default ErrorBoundary;
-

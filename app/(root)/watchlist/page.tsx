@@ -1,45 +1,10 @@
-import AlertSearchCommand from "@/components/AlertSearchCommand";
-import AlertsPanel from "@/components/AlertsPanel";
-import { Button } from "@/components/ui/button";
-import WatchListTable from "@/components/WatchListTable";
-import {
-  getWatchlistWithData,
-  searchStocks,
-} from "@/lib/actions/finnhub.actions";
-import { PlusIcon } from "lucide-react";
-import React from "react";
+import { searchStocks } from "@/lib/actions/finnhub.actions";
+import WatchlistPageClient from "./WatchlistPageClient";
 
 const WatchlistPage = async () => {
-  const watchlistData = await getWatchlistWithData();
   const initialStocks = await searchStocks();
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-5">
-      <div className="md:col-span-2 lg:col-span-5 space-y-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-100">Watchlist</h2>
-          <Button>
-            <PlusIcon className="w-4 h-4" />
-            Add Stock
-          </Button>
-        </div>
-        <WatchListTable watchlist={watchlistData} />
-      </div>
-
-      <div className="col-span-1 lg:col-span-2 space-y-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-100">Alerts</h2>
-          <AlertSearchCommand
-            initialStocks={initialStocks.map((stock) => ({
-              ...stock,
-              isInWatchlist: false,
-            }))}
-          />
-        </div>
-        <AlertsPanel watchlist={watchlistData} />
-      </div>
-    </div>
-  );
+  return <WatchlistPageClient initialStocks={initialStocks} />;
 };
 
 export default WatchlistPage;

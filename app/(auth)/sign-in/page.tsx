@@ -1,17 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/forms/InputField";
+import InputGroupField from "@/components/forms/InputGroupField";
+import { InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
 import FooterLink from "@/components/forms/FooterLink";
 import { signInWithEmail } from "@/lib/actions/auth.actions";
 import { toast } from "sonner";
 // import { signInEmail } from "better-auth/api";
-import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 const SignIn = () => {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -64,21 +69,33 @@ const SignIn = () => {
           }}
         />
 
-        <InputField
+        <InputGroupField
           name="password"
           label="Password"
           placeholder="Enter your password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           register={register}
           error={errors.password}
           validation={{ required: "Password is required", minLength: 8 }}
-        />
-
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="yellow-btn w-full mt-5"
         >
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="input-group-addon"
+              aria-label="Toggle password visibility"
+              title={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? (
+                <EyeIcon className="size-4" />
+              ) : (
+                <EyeOffIcon className="size-4" />
+              )}
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroupField>
+
+        <Button type="submit" disabled={isSubmitting} className="auth-btn mt-5">
           {isSubmitting && <Spinner />}
           {isSubmitting ? "Signing In" : "Sign In"}
         </Button>
