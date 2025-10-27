@@ -127,8 +127,9 @@ export const sendDailyNewsSummary = inngest.createFunction(
 
           // If user has watchlist items, try to get news for those symbols
           if (symbols.length > 0) {
+            const safeEmail = user.email.replace(/^(.).+(@.+)$/, "$1***$2");
             console.log(
-              `Fetching news for ${user.email} watchlist: ${symbols.join(", ")}`
+              `Fetching news for ${safeEmail} watchlist: ${symbols.length} symbols`
             );
             articles = await getNews(symbols);
             // Enforce max 6 articles per user
@@ -137,8 +138,9 @@ export const sendDailyNewsSummary = inngest.createFunction(
 
           // If no articles found (either no watchlist or watchlist news failed), fetch general news
           if (!articles || articles.length === 0) {
+            const safeEmail2 = user.email.replace(/^(.).+(@.+)$/, "$1***$2");
             console.log(
-              `No watchlist articles found for ${user.email} (watchlist: ${
+              `No watchlist articles found for ${safeEmail2} (watchlist: ${
                 symbols.length > 0 ? `${symbols.length} stocks` : "empty"
               }), fetching general market news...`
             );
@@ -369,20 +371,27 @@ export const sendInactiveUserReminder = inngest.createFunction(
 
       // Send reminder email to each inactive user
       await step.run("send-inactive-reminder-emails", async () => {
-        await Promise.all(
-          inactiveUsers.map(async (user) => {
-            try {
-              await sendInactiveUserReminderEmail({
-                email: user.email,
-                name: user.name,
-              });
-              return { success: true, email: user.email };
-            } catch (error) {
-              console.error(`Failed to send reminder to ${user.email}:`, error);
-              return { success: false, email: user.email };
-            }
-          })
-        );
+        const CONCURRENCY = 10;
+        for (let i = 0; i < inactiveUsers.length; i += CONCURRENCY) {
+          const batch = inactiveUsers.slice(i, i + CONCURRENCY);
+          await Promise.all(
+            batch.map(async (user) => {
+              try {
+                await sendInactiveUserReminderEmail({
+                  email: user.email,
+                  name: user.name,
+                });
+                return { success: true, email: user.email };
+              } catch (error) {
+                console.error(
+                  `Failed to send reminder to ${user.email}:`,
+                  error
+                );
+                return { success: false, email: user.email };
+              }
+            })
+          );
+        }
       });
 
       return {

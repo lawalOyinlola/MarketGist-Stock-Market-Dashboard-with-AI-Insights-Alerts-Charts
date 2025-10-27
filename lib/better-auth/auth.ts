@@ -39,7 +39,7 @@ export const getAuth = async () => {
           // Construct direct reset password URL with encoded token
           const base = process.env.BETTER_AUTH_URL || baseURL; // reuse validated baseURL
           const reset = new URL("/reset-password", base);
-          reset.searchParams.set("token", encodeURIComponent(token));
+          reset.searchParams.set("token", token);
           const resetUrl = reset.toString();
 
           // Use the professional email template

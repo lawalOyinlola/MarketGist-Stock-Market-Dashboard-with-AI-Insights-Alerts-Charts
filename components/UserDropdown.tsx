@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -24,6 +25,7 @@ const UserDropdown = ({
   initialStocks: StockWithWatchlistStatus[];
 }) => {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
 
   const handleSignOut: () => Promise<void> = async () => {
     const result = await signOut();
@@ -42,7 +44,7 @@ const UserDropdown = ({
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -79,7 +81,10 @@ const UserDropdown = ({
         </DropdownMenuItem>
         <DropdownMenuSeparator className="block sm:hidden bg-gray-600" />
         <nav className="sm:hidden">
-          <NavItems initialStocks={initialStocks} />
+          <NavItems
+            initialStocks={initialStocks}
+            onItemClick={() => setOpen(false)}
+          />
         </nav>
       </DropdownMenuContent>
     </DropdownMenu>
