@@ -67,7 +67,7 @@ A comprehensive stock market tracker with AI integration, real-time charts, pers
 
 ### Project Structure
 
-```
+```text
 stocks/
 ├── app/                    # Next.js App Router
 │   ├── (auth)/            # Authentication routes
@@ -240,15 +240,15 @@ Professional email templates for price alerts, news summaries, and user notifica
 
 Beautiful and intuitive sign-up experience with comprehensive user profile setup.
 
-## Secure password reset flow with email verification.
+### Password Reset
 
 ![Forgot Password](./public/assets/screenshots/Screenshot-forgot-password.webp)
 
-Forgot password
+Secure password reset flow with email verification. Request a password reset link via email.
 
 ![Password Reset](./public/assets/screenshots/Screenshot-reset-password.webp)
 
-Reset Password
+Complete the password reset flow using the secure token sent to your email.
 
 ## 📋 Available Scripts
 

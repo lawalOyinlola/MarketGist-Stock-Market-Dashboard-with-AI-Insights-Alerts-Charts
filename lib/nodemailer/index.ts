@@ -130,9 +130,7 @@ export const sendNewsSummaryEmail = async ({
     );
 
   const dashboardUrl = process.env.BETTER_AUTH_URL || "https://marketgist.com";
-  const unsubscribeUrl = `${dashboardUrl}/unsubscribe?email=${encodeURIComponent(
-    email
-  )}`;
+  const unsubscribeUrl = getUnsubscribeUrl(email);
 
   const htmlTemplate = NEWS_SUMMARY_EMAIL_TEMPLATE.replace(
     "{{date}}",

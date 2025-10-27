@@ -219,7 +219,7 @@ export default function SearchCommand({
 
     return (
       <li
-        key={`${stock.symbol}-${index}-${stock.exchange || "default"}`}
+        key={`${stock.symbol}-${stock.exchange || "default"}`}
         className="search-item"
       >
         <div className="search-item-container">
