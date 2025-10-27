@@ -63,7 +63,9 @@ export const getInactiveUsers = async (): Promise<NewsUser[]> => {
       .toArray();
 
     for (const session of sessions as any[]) {
-      const userId = session.userId;
+      const rawUserId = (session as any).userId;
+      const userId: string | undefined =
+        typeof rawUserId === "string" ? rawUserId : rawUserId?.toString?.();
       if (!userId) continue;
 
       // Check various possible timestamp fields

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchJSON } from "@/lib/actions/finnhub.actions";
-import { FINNHUB_BASE_URL, FINNHUB_API_KEY } from "@/lib/constants";
+import { FINNHUB_BASE_URL } from "@/lib/constants";
+
+const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 
 export async function GET(request: NextRequest) {
   try {

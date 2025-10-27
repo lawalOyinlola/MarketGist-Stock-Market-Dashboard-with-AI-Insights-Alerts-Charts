@@ -22,16 +22,24 @@ export async function GET(request: NextRequest) {
     // Get query parameters for filtering
     const searchParams = request.nextUrl.searchParams;
     const isRead = searchParams.get("isRead");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const limitParam = parseInt(searchParams.get("limit") || "10", 10);
+    const limit = Math.min(Math.max(limitParam, 1), 100); // Clamp between 1 and 100
     const since = searchParams.get("since"); // ISO timestamp to get notifications after this time
 
     // Build query
     const query: any = { userId };
-    if (isRead !== null) {
+    if (isRead !== null && isRead !== undefined) {
       query.isRead = isRead === "true";
     }
     if (since) {
-      query.createdAt = { $gt: new Date(since) };
+      const sinceDate = new Date(since);
+      if (isNaN(sinceDate.getTime())) {
+        return NextResponse.json(
+          { error: "Invalid 'since' timestamp" },
+          { status: 400 }
+        );
+      }
+      query.createdAt = { $gt: sinceDate };
     }
 
     // Fetch notifications
@@ -73,7 +81,15 @@ export async function PATCH(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    const { notificationId, markAllAsRead } = await request.json();
+    let notificationId, markAllAsRead;
+    try {
+      ({ notificationId, markAllAsRead } = await request.json());
+    } catch (parseError) {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
 
     if (markAllAsRead) {
       // Mark all notifications as read for this user
@@ -86,10 +102,17 @@ export async function PATCH(request: NextRequest) {
 
     if (notificationId) {
       // Mark specific notification as read
-      await Notification.updateOne(
+      const result = await Notification.updateOne(
         { _id: notificationId, userId },
         { $set: { isRead: true } }
       );
+      if (result.matchedCount === 0) {
+        return NextResponse.json(
+          { error: "Notification not found" },
+          { status: 404 }
+        );
+      }
+
       return NextResponse.json({ success: true });
     }
 

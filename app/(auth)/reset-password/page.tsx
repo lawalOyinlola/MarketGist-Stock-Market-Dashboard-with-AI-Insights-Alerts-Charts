@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 
-const ResetPassword = () => {
+const ResetPasswordContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryToken = searchParams.get("token");
@@ -36,6 +36,7 @@ const ResetPassword = () => {
     const finalToken = queryToken;
 
     if (!finalToken) {
+      setIsValidatingToken(false);
       toast.error("Invalid reset link", {
         description: "Please request a new password reset.",
       });
@@ -120,6 +121,7 @@ const ResetPassword = () => {
         >
           <InputGroupAddon align="inline-end">
             <InputGroupButton
+              type="button"
               onClick={() => setShowPassword((prev) => !prev)}
               className="input-group-addon"
               aria-label="Toggle password visibility"
@@ -150,6 +152,7 @@ const ResetPassword = () => {
         >
           <InputGroupAddon align="inline-end">
             <InputGroupButton
+              type="button"
               onClick={() => setShowConfirmPassword((prev) => !prev)}
               className="input-group-addon"
               aria-label="Toggle password visibility"
@@ -179,4 +182,19 @@ const ResetPassword = () => {
     </>
   );
 };
+
+const ResetPassword = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[200px]">
+          <Spinner className="size-12" />
+        </div>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
+  );
+};
+
 export default ResetPassword;

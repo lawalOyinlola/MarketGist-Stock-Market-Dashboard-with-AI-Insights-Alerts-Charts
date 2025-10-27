@@ -36,10 +36,11 @@ export const getAuth = async () => {
       autoSignIn: true,
       sendResetPassword: async ({ user, url, token }, request) => {
         try {
-          // Construct the direct reset password URL with token as query parameter
-          const baseURL =
-            process.env.BETTER_AUTH_URL || "http://localhost:3000";
-          const resetUrl = `${baseURL}/reset-password?token=${token}`;
+          // Construct direct reset password URL with encoded token
+          const base = process.env.BETTER_AUTH_URL || baseURL; // reuse validated baseURL
+          const reset = new URL("/reset-password", base);
+          reset.searchParams.set("token", encodeURIComponent(token));
+          const resetUrl = reset.toString();
 
           // Use the professional email template
           const htmlTemplate = PASSWORD_RESET_EMAIL_TEMPLATE.replace(

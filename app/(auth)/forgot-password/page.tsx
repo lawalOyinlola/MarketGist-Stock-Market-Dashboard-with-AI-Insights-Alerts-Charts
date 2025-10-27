@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/forms/InputField";
 import FooterLink from "@/components/forms/FooterLink";
@@ -11,7 +10,6 @@ import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 
 const ForgotPassword = () => {
-  const router = useRouter();
   const [success, setSuccess] = useState(false);
 
   const {
@@ -52,7 +50,7 @@ const ForgotPassword = () => {
       <h1 className="form-title">Forgot Password</h1>
 
       {success ? (
-        <div className="space-y-5">
+        <div className="space-y-5" role="status" aria-live="polite">
           <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
             <p className="text-gray-400 text-sm">
               We&apos;ve sent you a password reset link. Please check your
@@ -76,6 +74,7 @@ const ForgotPassword = () => {
             name="email"
             label="Email"
             placeholder="example@email.com"
+            type="email"
             register={register}
             error={errors.email}
             validation={{

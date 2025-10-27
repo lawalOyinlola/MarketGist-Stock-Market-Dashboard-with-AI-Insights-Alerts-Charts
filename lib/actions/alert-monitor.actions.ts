@@ -52,7 +52,11 @@ export async function checkAlertsAndTrigger(): Promise<{
       try {
         // Get current price for this symbol
         const quote = await getQuote(symbol);
-        if (!quote || !quote.c) {
+        if (
+          !quote ||
+          typeof quote.c !== "number" ||
+          !Number.isFinite(quote.c)
+        ) {
           errors.push(`No price data available for ${symbol}`);
           continue;
         }
@@ -67,40 +71,70 @@ export async function checkAlertsAndTrigger(): Promise<{
               : currentPrice <= alert.threshold;
 
           if (shouldTrigger) {
-            // Check frequency constraints
+            // Use atomic database operation to check and update frequency constraints
+            // This prevents race conditions by making DB the single source of truth
             const now = new Date();
             const lastTriggered = alert.lastTriggeredAt
               ? new Date(alert.lastTriggeredAt)
               : null;
-            let canTrigger = true;
+            let updateResult: any;
 
-            if (lastTriggered) {
-              const timeSinceLastTrigger =
-                now.getTime() - lastTriggered.getTime();
+            if (alert.frequency === "once") {
+              // Atomically check isActive and deactivate
+              updateResult = await Alert.updateOne(
+                { _id: alert._id, isActive: true },
+                { $set: { isActive: false, lastTriggeredAt: now } }
+              );
+            } else {
+              // Pre-check time window before attempting update
+              if (lastTriggered) {
+                const timeSinceLastTrigger =
+                  now.getTime() - lastTriggered.getTime();
+                let minTimeWindow = 0;
 
-              switch (alert.frequency) {
-                case "minute":
-                  // Can trigger every minute (60 seconds)
-                  canTrigger = timeSinceLastTrigger >= 60 * 1000;
-                  break;
-                case "hourly":
-                  // Can trigger every hour
-                  canTrigger = timeSinceLastTrigger >= 60 * 60 * 1000;
-                  break;
-                case "daily":
-                  // Can trigger every day (24 hours)
-                  canTrigger = timeSinceLastTrigger >= 24 * 60 * 60 * 1000;
-                  break;
-                case "once":
-                  // Only trigger once, deactivate after first trigger
-                  canTrigger = false;
-                  break;
+                switch (alert.frequency) {
+                  case "minute":
+                    minTimeWindow = 60 * 1000;
+                    break;
+                  case "hourly":
+                    minTimeWindow = 60 * 60 * 1000;
+                    break;
+                  case "daily":
+                    minTimeWindow = 24 * 60 * 60 * 1000;
+                    break;
+                }
+
+                if (timeSinceLastTrigger < minTimeWindow) {
+                  console.log(
+                    `Alert ${
+                      alert.alertName || alert._id
+                    } (${symbol}) skipping due to frequency constraint (${
+                      alert.frequency
+                    })`
+                  );
+                  continue;
+                }
               }
+
+              // Atomically update with optimistic concurrency control
+              updateResult = await Alert.updateOne(
+                {
+                  _id: alert._id,
+                  $or: [
+                    { lastTriggeredAt: { $exists: false } },
+                    { lastTriggeredAt: lastTriggered },
+                  ],
+                },
+                { $set: { lastTriggeredAt: now } }
+              );
             }
 
-            if (!canTrigger) {
+            // Only proceed if DB update actually modified a document
+            if (updateResult.modifiedCount === 0) {
               console.log(
-                `Alert ${alert.alertName} (${symbol}) skipping due to frequency constraint (${alert.frequency})`
+                `Alert ${
+                  alert.alertName || alert._id
+                } (${symbol}) skipped - already triggered by another process`
               );
               continue;
             }
@@ -110,9 +144,11 @@ export async function checkAlertsAndTrigger(): Promise<{
             );
 
             // Get user email
-            const user = await db.collection("user").findOne({
-              id: alert.userId,
-            });
+            const user = await db
+              .collection("user")
+              .findOne<{ _id?: unknown; id?: string; email?: string }>({
+                email: { $exists: true },
+              });
 
             if (!user?.email) {
               errors.push(`No email found for user ${alert.userId}`);
@@ -123,31 +159,42 @@ export async function checkAlertsAndTrigger(): Promise<{
             const company = alert.company || symbol;
 
             const targetPrice = alert.threshold;
-            const timestamp = new Date().toISOString();
+            const timestamp = new Date();
+            const timestampISO = timestamp.toISOString();
+
+            // Generate deterministic ID for idempotency within a per-minute window
+            // This prevents duplicate alert sends on retries while allowing new alerts each minute
+            const eventId = `${alert._id}:${Math.floor(
+              timestamp.getTime() / 60000
+            )}`;
 
             // Trigger the appropriate Inngest event
             if (alert.alertType === "upper") {
               await inngest.send({
+                id: eventId,
                 name: "app/stock.alert.upper",
                 data: {
+                  id: eventId,
                   email: user.email,
                   symbol,
                   company,
                   currentPrice,
                   targetPrice,
-                  timestamp,
+                  timestamp: timestampISO,
                 },
               });
             } else {
               await inngest.send({
+                id: eventId,
                 name: "app/stock.alert.lower",
                 data: {
+                  id: eventId,
                   email: user.email,
                   symbol,
                   company,
                   currentPrice,
                   targetPrice,
-                  timestamp,
+                  timestamp: timestampISO,
                 },
               });
             }
@@ -182,20 +229,7 @@ export async function checkAlertsAndTrigger(): Promise<{
               console.error("Failed to create notification:", notifError);
             }
 
-            // Update lastTriggeredAt and handle frequency
-            if (alert.frequency === "once") {
-              // Deactivate the alert after first trigger
-              await Alert.updateOne(
-                { _id: alert._id },
-                { isActive: false, lastTriggeredAt: now }
-              );
-            } else {
-              // Just update the lastTriggeredAt timestamp
-              await Alert.updateOne(
-                { _id: alert._id },
-                { lastTriggeredAt: now }
-              );
-            }
+            // DB update already happened above - DB is the single source of truth
           }
         }
       } catch (error) {

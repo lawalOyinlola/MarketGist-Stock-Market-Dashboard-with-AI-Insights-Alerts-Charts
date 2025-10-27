@@ -951,8 +951,7 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 30px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="https://stock-market-dev.vercel.app/" style="display: inline-block; background-color: #22c55e; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1;">
-                                            View Dashboard
+                                       <a href="{{dashboardUrl}}" style="display: inline-block; background-color: #22c55e; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1;">View Dashboard
                                         </a>
                                     </td>
                                 </tr>
@@ -1207,7 +1206,7 @@ export const PASSWORD_RESET_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <tr>
                         <td style="padding: 40px;">
                             <h1 style="margin: 0 0 20px 0; font-size: 28px; font-weight: 600; color: #22c55e; line-height: 1.2;">Reset Your Password</h1>
-                            <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">We received a request to reset your password. Click the button below to create a new password.</p>
+                            <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">We received a request to reset your password. Click the button below to create a new password. This link expires in 1 hour. If you didn’t request this, you can safely ignore this email.</p>
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 30px 0; width: 100%;">
                                 <tr>
                                     <td align="center">

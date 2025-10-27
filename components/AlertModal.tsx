@@ -140,7 +140,7 @@ const AlertModal = ({
     if (isNaN(numValue) || numValue <= 0) {
       return "Threshold must be a positive number";
     }
-    if (!currentPrice) {
+    if (currentPrice == null) {
       return "Current price not available";
     }
     if (

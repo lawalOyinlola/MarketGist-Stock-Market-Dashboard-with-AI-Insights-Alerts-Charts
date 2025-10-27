@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 interface NotificationData {
@@ -20,31 +21,30 @@ interface NotificationResponse {
 }
 
 export function NotificationPoller() {
-  const lastCheckTimeRef = useRef<Date>(new Date());
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isTabActiveRef = useRef<boolean>(!document.hidden);
+  const router = useRouter();
+  const lastCheckTimeRef = useRef<Date | null>(null); // null => first run
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null); // Proper type for browser timers
+  const isTabActiveRef = useRef<boolean>(true);
   const seenNotificationsRef = useRef<Set<string>>(new Set());
-
-  // Pause polling when tab is inactive to save resources
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      isTabActiveRef.current = !document.hidden;
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
+  const inFlightRef = useRef<boolean>(false); // Prevent overlapping polls
 
   const checkForNewNotifications = useCallback(async () => {
+    // Prevent overlapping polls
+    if (inFlightRef.current) {
+      return;
+    }
+
     // Skip if tab is inactive to save battery
     if (!isTabActiveRef.current) {
       return;
     }
 
+    inFlightRef.current = true;
+
     try {
-      const since = lastCheckTimeRef.current.toISOString();
+      // Handle null lastCheckTimeRef (initial mount)
+      const since =
+        lastCheckTimeRef.current?.toISOString() || new Date(0).toISOString();
       const response = await fetch(
         `/api/notifications?since=${since}&isRead=false`
       );
@@ -70,9 +70,7 @@ export function NotificationPoller() {
             action: notification.symbol
               ? {
                   label: "View",
-                  onClick: () => {
-                    window.location.href = `/stocks/${notification.symbol}`;
-                  },
+                  onClick: () => router.push(`/stocks/${notification.symbol}`),
                 }
               : undefined,
           });
@@ -83,8 +81,28 @@ export function NotificationPoller() {
       lastCheckTimeRef.current = new Date();
     } catch (error) {
       console.error("Error checking for notifications:", error);
+    } finally {
+      inFlightRef.current = false;
     }
   }, []);
+
+  // Pause polling when tab is inactive to save resources
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const wasActive = isTabActiveRef.current;
+      isTabActiveRef.current = !document.hidden;
+
+      // When tab becomes visible, trigger an immediate check
+      if (!wasActive && isTabActiveRef.current) {
+        checkForNewNotifications();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [checkForNewNotifications]);
 
   useEffect(() => {
     // Check immediately on mount

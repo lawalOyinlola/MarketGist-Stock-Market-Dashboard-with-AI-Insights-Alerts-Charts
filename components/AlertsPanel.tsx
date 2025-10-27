@@ -206,7 +206,7 @@ const AlertsPanel = ({ watchlist }: { watchlist: StockWithData[] }) => {
                   className="relative bg-gray-700 border-0 border-t border-l border-gray-600 hover:border-gray-500 transition-all overflow-hidden"
                 >
                   <div
-                    className={`absolute z-10 top-4 -left-10 ${alertStatus.bgColor} text-white text-xs px-10 py-1 rotate-315 font-semibold`}
+                    className={`absolute z-10 top-4 -left-10 ${alertStatus.bgColor} text-white text-xs px-10 py-1 -rotate-45 pointer-events-none font-semibold`}
                   >
                     <p>{alertStatus.label}</p>
                   </div>

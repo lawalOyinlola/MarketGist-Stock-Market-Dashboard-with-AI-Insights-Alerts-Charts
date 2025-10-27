@@ -14,7 +14,6 @@ function Separator({
   return (
     <SeparatorPrimitive.Root
       data-slot="separator"
-      aria-hidden={decorative}
       decorative={decorative}
       orientation={orientation}
       className={cn(

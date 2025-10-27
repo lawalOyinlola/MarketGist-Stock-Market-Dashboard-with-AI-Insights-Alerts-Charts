@@ -403,7 +403,7 @@ export const sendInactiveUserReminder = inngest.createFunction(
 
 // Stock Price Alert Monitoring - checks prices and triggers alerts
 export const monitorStockAlerts = inngest.createFunction(
-  { id: "monitor-stock-alerts" },
+  { id: "monitor-stock-alerts", concurrency: 1 }, // Prevent race conditions by running one instance at a time
   [{ cron: "*/2 * * * *" }], // Every 2 minutes (improved responsiveness)
   async ({ step }) => {
     const { checkAlertsAndTrigger } = await import(

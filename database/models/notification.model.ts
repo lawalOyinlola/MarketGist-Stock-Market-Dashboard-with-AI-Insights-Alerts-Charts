@@ -55,7 +55,3 @@ NotificationSchema.index({ userId: 1, symbol: 1 });
 export const Notification =
   mongoose.models.Notification ||
   mongoose.model<NotificationDocument>("Notification", NotificationSchema);
-
-
-
-
