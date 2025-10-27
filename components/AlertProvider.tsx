@@ -147,7 +147,7 @@ export function AlertProvider({
       });
       return false;
     } catch (e) {
-      toast.error("Failed to update alert", {
+      toast.error("Failed to remove alert", {
         description: "An unexpected error occurred",
       });
       return false;

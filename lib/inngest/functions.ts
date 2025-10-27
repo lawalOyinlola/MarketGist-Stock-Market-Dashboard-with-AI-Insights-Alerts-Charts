@@ -11,7 +11,10 @@ import {
   sendVolumeAlertEmail,
   sendInactiveUserReminderEmail,
 } from "@/lib/nodemailer";
-import { getAllUsersForNewsEmail } from "@/lib/actions/user.actions";
+import {
+  getAllUsersForNewsEmail,
+  getInactiveUsers,
+} from "@/lib/actions/user.actions";
 import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 import { getNews } from "@/lib/actions/finnhub.actions";
 import { getFormattedTodayDate } from "@/lib/utils";
@@ -119,17 +122,30 @@ export const sendDailyNewsSummary = inngest.createFunction(
       for (const user of users as User[]) {
         try {
           const symbols = await getWatchlistSymbolsByEmail(user.email);
-          let articles = await getNews(symbols);
-          // Enforce max 6 articles per user
-          articles = (articles || []).slice(0, 6);
-          // If still empty, fallback to general
+
+          let articles: MarketNewsArticle[] = [];
+
+          // If user has watchlist items, try to get news for those symbols
+          if (symbols.length > 0) {
+            console.log(
+              `Fetching news for ${user.email} watchlist: ${symbols.join(", ")}`
+            );
+            articles = await getNews(symbols);
+            // Enforce max 6 articles per user
+            articles = (articles || []).slice(0, 6);
+          }
+
+          // If no articles found (either no watchlist or watchlist news failed), fetch general news
           if (!articles || articles.length === 0) {
             console.log(
-              `No articles found for ${user.email}, trying general news...`
+              `No watchlist articles found for ${user.email} (watchlist: ${
+                symbols.length > 0 ? `${symbols.length} stocks` : "empty"
+              }), fetching general market news...`
             );
             articles = await getNews();
             articles = (articles || []).slice(0, 6);
           }
+
           perUser.push({ user, articles });
         } catch (e) {
           console.error("daily-news: error preparing user news", user.email, e);
@@ -321,31 +337,88 @@ export const sendVolumeAlert = inngest.createFunction(
   }
 );
 
+/**
+ * Inactive User Reminder - Weekly scheduled job
+ *
+ * Sends reminder emails to users who haven't logged in for 30+ days.
+ * Runs every 7 days (every Sunday at midnight).
+ *
+ * Conditions for sending:
+ * - User hasn't logged in within the last 30 days
+ * - Email includes personalized call-to-action to return
+ */
 export const sendInactiveUserReminder = inngest.createFunction(
   { id: "inactive-user-reminder" },
-  { event: "app/user.inactive.reminder" },
-  async ({ event, step }) => {
+  [{ cron: "0 0 * * 0" }], // Run every 7 days (every Sunday at midnight)
+  async ({ step }) => {
     try {
-      const { email, name } = event.data;
+      // Get all inactive users (haven't logged in for 30+ days)
+      const inactiveUsers = await step.run(
+        "get-inactive-users",
+        getInactiveUsers
+      );
 
-      await step.run("send-inactive-reminder-email", async () => {
-        return await sendInactiveUserReminderEmail({
-          email,
-          name,
-        });
+      if (!inactiveUsers || inactiveUsers.length === 0) {
+        console.log("No inactive users found");
+        return { success: true, message: "No inactive users found" };
+      }
+
+      console.log(
+        `Found ${inactiveUsers.length} inactive users to send reminders to`
+      );
+
+      // Send reminder email to each inactive user
+      await step.run("send-inactive-reminder-emails", async () => {
+        await Promise.all(
+          inactiveUsers.map(async (user) => {
+            try {
+              await sendInactiveUserReminderEmail({
+                email: user.email,
+                name: user.name,
+              });
+              return { success: true, email: user.email };
+            } catch (error) {
+              console.error(`Failed to send reminder to ${user.email}:`, error);
+              return { success: false, email: user.email };
+            }
+          })
+        );
       });
 
       return {
         success: true,
-        message: `Inactive user reminder sent to ${email}`,
+        message: `Inactive user reminders sent to ${inactiveUsers.length} users`,
+        count: inactiveUsers.length,
       };
     } catch (error) {
-      console.error("Failed to send inactive user reminder:", error);
+      console.error("Failed to send inactive user reminders:", error);
       return {
         success: false,
-        message: "Failed to send inactive user reminder",
+        message: "Failed to send inactive user reminders",
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }
+  }
+);
+
+// Stock Price Alert Monitoring - checks prices and triggers alerts
+export const monitorStockAlerts = inngest.createFunction(
+  { id: "monitor-stock-alerts" },
+  [{ cron: "*/2 * * * *" }], // Every 2 minutes (improved responsiveness)
+  async ({ step }) => {
+    const { checkAlertsAndTrigger } = await import(
+      "@/lib/actions/alert-monitor.actions"
+    );
+
+    const result = await step.run("check-alerts-and-trigger", async () => {
+      return await checkAlertsAndTrigger();
+    });
+
+    return {
+      success: true,
+      message: `Checked alerts: ${result.triggered.length} triggered, ${result.errors.length} errors`,
+      triggered: result.triggered.length,
+      errors: result.errors.length,
+    };
   }
 );

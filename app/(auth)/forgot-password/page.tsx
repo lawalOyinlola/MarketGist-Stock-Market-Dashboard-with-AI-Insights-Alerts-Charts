@@ -1,0 +1,109 @@
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import InputField from "@/components/forms/InputField";
+import FooterLink from "@/components/forms/FooterLink";
+import { requestPasswordReset } from "@/lib/actions/auth.actions";
+import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
+
+const ForgotPassword = () => {
+  const router = useRouter();
+  const [success, setSuccess] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ForgotPasswordFormData>({
+    defaultValues: {
+      email: "",
+    },
+    mode: "onBlur",
+  });
+
+  const onSubmit = async (data: ForgotPasswordFormData) => {
+    try {
+      const result = await requestPasswordReset(data);
+
+      if (result.success) {
+        setSuccess(true);
+        toast.success("Reset link sent!", {
+          description: "Check your email for password reset instructions.",
+        });
+      } else {
+        toast.error("Failed to send reset link", {
+          description: result.error ?? "Please try again.",
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to send reset link", {
+        description: e instanceof Error ? e.message : "Please try again.",
+      });
+    }
+  };
+
+  return (
+    <>
+      <h1 className="form-title">Forgot Password</h1>
+
+      {success ? (
+        <div className="space-y-5">
+          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+            <p className="text-gray-400 text-sm">
+              We&apos;ve sent you a password reset link. Please check your
+              email.
+            </p>
+          </div>
+          <FooterLink
+            text="Remember your password?"
+            linkText="Back to sign in"
+            href="/sign-in"
+          />
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <p className="text-gray-400 text-sm">
+            Enter your email address and we&apos;ll send you a link to reset
+            your password.
+          </p>
+
+          <InputField
+            name="email"
+            label="Email"
+            placeholder="example@email.com"
+            register={register}
+            error={errors.email}
+            validation={{
+              required: "Email is required",
+              pattern: {
+                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                message: "Please enter a valid email address",
+              },
+            }}
+          />
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="auth-btn mt-5"
+          >
+            {isSubmitting && <Spinner />}
+            {isSubmitting ? "Sending..." : "Send Reset Link"}
+          </Button>
+
+          <FooterLink
+            text="Remember your password?"
+            linkText="Back to sign in"
+            href="/sign-in"
+          />
+        </form>
+      )}
+    </>
+  );
+};
+export default ForgotPassword;

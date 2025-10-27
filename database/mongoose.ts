@@ -35,6 +35,16 @@ export const connectToDatabase = async () => {
         process.env.NODE_ENV || "development"
       })`
     );
+
+    // Sync indexes after successful connection
+    // This ensures indexes defined in models are created in the database
+    try {
+      await mongoose.syncIndexes();
+      console.log("✅ Indexes synchronized successfully");
+    } catch (syncError) {
+      console.error("⚠️ Warning: Index sync encountered issues:", syncError);
+      // Don't throw - connection is still valid, indexes will be handled by initialization script
+    }
   } catch (err) {
     cached.promise = null;
     console.error("❌ MongoDB connection error:", err);

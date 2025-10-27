@@ -7,6 +7,7 @@ import {
   sendStockAlertLower,
   sendVolumeAlert,
   sendInactiveUserReminder,
+  monitorStockAlerts,
 } from "@/lib/inngest/functions";
 
 export const runtime = "nodejs";
@@ -19,5 +20,6 @@ export const { GET, POST, PUT } = serve({
     sendStockAlertLower,
     sendVolumeAlert,
     sendInactiveUserReminder,
+    monitorStockAlerts,
   ],
 });

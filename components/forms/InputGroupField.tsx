@@ -49,7 +49,7 @@ const InputGroupField = ({
           <InputGroupInput
             type={type}
             {...inputProps}
-            className="input-group-input"
+            className={cn("input-group-input", (inputProps as any)?.className)}
           />
         ) : (
           <InputGroupTextarea {...inputProps} />

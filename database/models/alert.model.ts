@@ -9,6 +9,7 @@ export interface AlertDocument extends Document {
   threshold: number;
   frequency: "once" | "daily" | "hourly" | "minute";
   isActive: boolean;
+  lastTriggeredAt?: Date; // Track when alert was last triggered for frequency control
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +52,11 @@ const AlertSchema = new Schema<AlertDocument>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    lastTriggeredAt: {
+      type: Date,
+      default: null,
+      index: true,
     },
   },
   {

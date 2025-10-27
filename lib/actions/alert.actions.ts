@@ -35,6 +35,7 @@ export async function getAlertsByEmail(email: string): Promise<AlertData[]> {
       alertType: alert.alertType,
       threshold: alert.threshold,
       frequency: alert.frequency,
+      lastTriggeredAt: alert.lastTriggeredAt,
     }));
   } catch (err) {
     console.error("getAlertsByEmail error:", err);

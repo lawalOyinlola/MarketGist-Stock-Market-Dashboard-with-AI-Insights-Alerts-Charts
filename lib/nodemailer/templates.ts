@@ -1,7 +1,7 @@
 export const NEWS_FALLBACK_CONTENT = `
   <h3 class="mobile-news-title dark-text" style="margin: 30px 0 15px 0; font-size: 18px; font-weight: 600; color: #f8f9fa; line-height: 1.3;">📊 Market Update</h3>
   <div class="dark-info-box" style="background-color: #212328; padding: 24px; margin: 20px 0; border-radius: 8px;">
-    <h4 class="dark-text" style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #FDD458; line-height: 1.4;">
+    <h4 class="dark-text" style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #22c55e; line-height: 1.4;">
       Market Data Temporarily Unavailable
     </h4>
     <p class="dark-text-secondary" style="margin: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
@@ -29,6 +29,11 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
     </noscript>
     <![endif]-->
     <style type="text/css">
+        /* Force dark header background always */
+        .mobile-header-padding {
+            background-color: #050505 !important;
+        }
+        
         /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
             .email-container {
@@ -108,7 +113,7 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     
                     <!-- Header with Logo -->
                     <tr>
-                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
+                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px; background-color: #050505 !important;">
                             <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
@@ -125,7 +130,7 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
                         <td class="mobile-padding" style="padding: 40px 40px 40px 40px;">
                             
                             <!-- Welcome Heading -->
-                            <h1 class="mobile-title dark-text" style="margin: 0 0 30px 0; font-size: 24px; font-weight: 600; color: #FDD458; line-height: 1.2;">
+                            <h1 class="mobile-title dark-text" style="margin: 0 0 30px 0; font-size: 24px; font-weight: 600; color: #22c55e; line-height: 1.2;">
                                 Welcome aboard {{name}}
                             </h1>
                             
@@ -153,7 +158,7 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 40px 0; width: 100%;">
                                 <tr>
                                     <td align="center">
-                                        <a href="{{dashboardUrl}}" style="display: block; width: 100%; background: linear-gradient(135deg, #FDD458 0%, #E8BA40 100%); color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center; box-sizing: border-box;">
+                                        <a href="{{dashboardUrl}}" style="display: block; width: 100%; background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center; box-sizing: border-box;">
                                             Go to Dashboard
                                         </a>
                                     </td>
@@ -196,11 +201,16 @@ export const NEWS_SUMMARY_EMAIL_TEMPLATE = `<!DOCTYPE html>
     </noscript>
     <![endif]-->
     <style type="text/css">
+        /* Always keep header dark */
+        .dark-header-bg {
+            background-color: #050505 !important;
+        }
+        
         /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
             .email-container {
-                background-color: #141414 !important;
-                border: 1px solid #30333A !important;
+                background-color: #ffffff !important;
+                border: 1px solid #e5e5e5 !important;
             }
             .dark-bg {
                 background-color: #050505 !important;
@@ -220,6 +230,9 @@ export const NEWS_SUMMARY_EMAIL_TEMPLATE = `<!DOCTYPE html>
             .dark-cta {
                 background-color: #1f2937 !important;
                 border: 1px solid #374151 !important;
+            }
+            .dark-header-bg {
+                background-color: #050505 !important;
             }
         }
         
@@ -263,30 +276,32 @@ export const NEWS_SUMMARY_EMAIL_TEMPLATE = `<!DOCTYPE html>
         }
     </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #050505; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #050505;">
+
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
+     
         <tr>
             <td align="center" class="mobile-outer-padding" style="padding: 40px 20px;">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-container" style="max-width: 600px; background-color: #141414; border-radius: 8px; border: 1px solid #30333A;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-container" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e5e5; overflow: hidden;">
                     
                     <!-- Header with Logo -->
                     <tr>
-                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
+                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px; background-color: #050505 !important;">
                             <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
                     <!-- Main Content -->
                     <tr>
-                        <td class="mobile-padding" style="padding: 40px 40px 40px 40px;">
+                        <td class="mobile-padding" style="padding: 40px 40px 40px 40px; background-color: #ffffff;">
                             
                             <!-- Header -->
-                            <h1 class="mobile-title dark-text" style="margin: 0 0 20px 0; font-size: 24px; font-weight: 600; color: #FDD458; line-height: 1.2;">
+                            <h1 class="mobile-title dark-text" style="margin: 0 0 20px 0; font-size: 24px; font-weight: 600; color: #22c55e; line-height: 1.2;">
                                 Market News Summary Today
                             </h1>
                             
                             <!-- Date -->
-                            <p class="mobile-text dark-text-muted" style="margin: 0 0 30px 0; font-size: 14px; line-height: 1.4; color: #6b7280;">
+                            <p class="mobile-text" style="margin: 0 0 30px 0; font-size: 14px; line-height: 1.4; color: #666666;">
                                 {{date}}
                             </p>
                             
@@ -295,14 +310,18 @@ export const NEWS_SUMMARY_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             
                             <!-- Footer Text -->
                             <div style="text-align: center; margin: 40px 0 0 0;">
-                                <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
+                               
+                                <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #666666 !important;">
                                     You're receiving this because you subscribed to Marketgist news updates.
                                 </p>
-                                <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    <a href="{{unsubscribeUrl}}" style="color: #CCDADC !important; text-decoration: underline;">Unsubscribe</a> | 
-                                    <a href="{{dashboardUrl}}" style="color: #CCDADC !important; text-decoration: underline;">Visit Marketgist</a>
+
+                                <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #666666 !important;">
+                                    <a href="{{unsubscribeUrl}}" style="color: #666666 !important; text-decoration: underline;">Unsubscribe</a> | 
+                                    <a href="{{dashboardUrl}}" style="color: #666666 !important; text-decoration: underline;">Visit Marketgist</a>
+                                
                                 </p>
-                                <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
+                               
+                                <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #666666 !important;">
                                     © 2025 Marketgist
                                 </p>
                             </div>
@@ -335,6 +354,11 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
     </noscript>
     <![endif]-->
     <style type="text/css">
+        /* Force dark header background always */
+        .mobile-header-padding {
+            background-color: #050505 !important;
+        }
+        
         /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
             .email-container {
@@ -421,7 +445,7 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     
                     <!-- Header with Logo -->
                     <tr>
-                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
+                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px; background-color: #050505 !important;">
                             <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
@@ -483,7 +507,7 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             
                             <!-- Success Message -->
                             <div style="background-color: #050505; border: 1px solid #374151; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
-                                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #E8BA40;">
+                                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #22c55e;">
                                     Opportunity Alert!
                                 </h3>
                                 <p class="mobile-text" style="margin: 0; font-size: 14px; line-height: 1.5; color: #ccdadc;">
@@ -495,7 +519,7 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 30px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="{{dashboardUrl}}" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; color: #000000; background-color: #E8BA40; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center;">
+                                        <a href="{{dashboardUrl}}" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; color: #000000; background-color: #22c55e; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center;">
                                             View Dashboard
                                         </a>
                                     </td>
@@ -544,6 +568,11 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
     </noscript>
     <![endif]-->
     <style type="text/css">
+        /* Force dark header background always */
+        .mobile-header-padding {
+            background-color: #050505 !important;
+        }
+        
         /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
             .email-container {
@@ -630,7 +659,7 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     
                     <!-- Header with Logo -->
                     <tr>
-                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
+                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px; background-color: #050505 !important;">
                             <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
@@ -692,7 +721,7 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             
                             <!-- Opportunity Message -->
                             <div style="background-color: #050505; border: 1px solid #374151; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
-                                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #E8BA40;">
+                                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #22c55e;">
                                     Price Dropped
                                 </h3>
                                 <p class="mobile-text" style="margin: 0; font-size: 14px; line-height: 1.5; color: #ccdadc;">
@@ -704,7 +733,7 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 30px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="{{dashboardUrl}}" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; background-color: #E8BA40; color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center;">
+                                        <a href="{{dashboardUrl}}" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; background-color: #22c55e; color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center;">
                                             View Dashboard
                                         </a>
                                     </td>
@@ -753,6 +782,11 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
     </noscript>
     <![endif]-->
     <style type="text/css">
+        /* Force dark header background always */
+        .mobile-header-padding {
+            background-color: #050505 !important;
+        }
+        
         /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
             .email-container {
@@ -830,7 +864,7 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     
                     <!-- Header with Logo -->
                     <tr>
-                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
+                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px; background-color: #050505 !important;">
                             <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
@@ -917,7 +951,7 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 30px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="https://stock-market-dev.vercel.app/" style="display: inline-block; background-color: #E8BA40; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1;">
+                                        <a href="https://stock-market-dev.vercel.app/" style="display: inline-block; background-color: #22c55e; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1;">
                                             View Dashboard
                                         </a>
                                     </td>
@@ -973,6 +1007,11 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
     </noscript>
     <![endif]-->
     <style type="text/css">
+        /* Force dark header background always */
+        .mobile-header-padding {
+            background-color: #050505 !important;
+        }
+        
         /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
             .email-container {
@@ -1053,7 +1092,7 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     
                     <!-- Header with Logo -->
                     <tr>
-                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
+                        <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px; background-color: #050505 !important;">
                             <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
@@ -1063,7 +1102,7 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                         <td class="mobile-padding" style="padding: 40px 40px 40px 40px;">
                             
                             <!-- Welcome Back Heading -->
-                            <h1 class="mobile-title dark-text" style="margin: 0 0 15px 0; font-size: 28px; font-weight: 600; background: linear-gradient(135deg, #FDD458 0%, #E8BA40 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: #FDD458; line-height: 1.2;">
+                            <h1 class="mobile-title dark-text" style="margin: 0 0 15px 0; font-size: 28px; font-weight: 600; background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: #22c55e; line-height: 1.2;">
                                 We Miss You, {{name}}!
                             </h1>
                             
@@ -1074,7 +1113,7 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
 
                             <!-- Additional Motivation -->
                             <div class="dark-info-box" style="background-color: #050505; border: 1px solid #374151; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
-                                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #E8BA40;">
+                                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #22c55e;">
                                     Market Update
                                 </h3>
                                 <p class="mobile-text" style="margin: 0; font-size: 14px; line-height: 1.5; color: #ccdadc;">
@@ -1091,7 +1130,7 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 20px 0; width: 100%;">
                                 <tr>
                                     <td align="center" class="mobile-button">
-                                        <a href="{{dashboardUrl}}" style="display: inline-block; background: #E8BA40; color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center;  width: 100%;">
+                                        <a href="{{dashboardUrl}}" style="display: inline-block; background: #22c55e; color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center;  width: 100%;">
                                             Return to Dashboard
                                         </a>
                                     </td>
@@ -1114,6 +1153,70 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                         </td>
                     </tr>
                     
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+
+export const PASSWORD_RESET_EMAIL_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Your Password</title>
+    <style type="text/css">
+        @media (prefers-color-scheme: dark) {
+            .email-container {
+                background-color: #141414 !important;
+                border: 1px solid #30333A !important;
+            }
+        }
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+                margin: 0 !important;
+            }
+            .mobile-header-padding {
+                padding: 24px 24px 12px 24px !important;
+            }
+        }
+        @media only screen and (max-width: 480px) {
+            .mobile-header-padding {
+                padding: 15px 15px 8px 15px !important;
+            }
+        }
+
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #050505; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #050505;">
+
+        <!-- Header with Logo -->
+        <tr>
+            <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px; background-color: #050505 !important;">
+                <img src="https://res.cloudinary.com/dnw48gzss/image/upload/v1761215474/logo-marketgist_xc1psm.png" alt="Marketgist Logo" width="150" style="max-width: 100%; height: auto;">
+            </td>
+        </tr>
+                    
+        <!-- Main Content -->        
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-container" style="max-width: 600px; background-color: #141414; border-radius: 8px; border: 1px solid #30333A;">
+                    <tr>
+                        <td style="padding: 40px;">
+                            <h1 style="margin: 0 0 20px 0; font-size: 28px; font-weight: 600; color: #22c55e; line-height: 1.2;">Reset Your Password</h1>
+                            <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">We received a request to reset your password. Click the button below to create a new password.</p>
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 30px 0; width: 100%;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{resetUrl}}" style="display: block; width: 84%; background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; text-align: center;">Reset Password</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
                 </table>
             </td>
         </tr>

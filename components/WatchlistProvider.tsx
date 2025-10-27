@@ -31,10 +31,12 @@ const WatchlistContext = createContext<WatchlistContextValue | null>(null);
 export function WatchlistProvider({
   initialSymbols = [],
   initialWatchlistData = [],
+  email,
   children,
 }: {
   initialSymbols?: string[];
   initialWatchlistData?: StockWithData[];
+  email?: string;
   children: React.ReactNode;
 }) {
   const [symbolsState, setSymbolsState] = useState<Set<string>>(
@@ -52,7 +54,8 @@ export function WatchlistProvider({
   const refreshWatchlist = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await getWatchlistWithData();
+      // Use email if available, otherwise fall back to internal auth
+      const data = await getWatchlistWithData(email);
       setWatchlistData(data);
     } catch (error) {
       console.error("Failed to refresh watchlist:", error);
@@ -60,7 +63,7 @@ export function WatchlistProvider({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [email]);
 
   const add = useCallback(
     async (symbol: string, company?: string) => {
