@@ -109,7 +109,24 @@ const AlertModal = ({
         frequency: alertToEdit.frequency,
       });
     }
-  }, [editAlertId, alertToEdit]);
+  }, [editAlertId, alertToEdit, resetEdit]);
+
+  // Clear form state when modal closes
+  useEffect(() => {
+    if (!open) {
+      resetNew();
+      resetEdit();
+      setEditingAlertId(null);
+    }
+  }, [open, resetNew, resetEdit]);
+
+  // Clear editing state when editAlertId becomes falsy
+  useEffect(() => {
+    if (!editAlertId) {
+      setEditingAlertId(null);
+      resetEdit();
+    }
+  }, [editAlertId, resetEdit]);
 
   // Validation functions
   const validateThreshold = (value: string, alertType: "upper" | "lower") => {
@@ -123,15 +140,23 @@ const AlertModal = ({
     if (isNaN(numValue) || numValue <= 0) {
       return "Threshold must be a positive number";
     }
-    if (!currentPrice) {
+    if (currentPrice == null) {
       return "Current price not available";
     }
-    if (alertType === "upper" && numValue <= currentPrice) {
+    if (
+      currentPrice != null &&
+      alertType === "upper" &&
+      numValue <= currentPrice
+    ) {
       return `Threshold must be greater than current price ($${currentPrice.toFixed(
         2
       )})`;
     }
-    if (alertType === "lower" && numValue >= currentPrice) {
+    if (
+      currentPrice != null &&
+      alertType === "lower" &&
+      numValue >= currentPrice
+    ) {
       return `Threshold must be less than current price ($${currentPrice.toFixed(
         2
       )})`;

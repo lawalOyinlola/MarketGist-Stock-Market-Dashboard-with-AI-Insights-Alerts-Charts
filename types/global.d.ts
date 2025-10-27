@@ -16,6 +16,20 @@ declare global {
     preferredIndustry: string;
   };
 
+  type ForgotPasswordFormData = {
+    email: string;
+  };
+
+  type ResetPasswordFormData = {
+    password: string;
+    confirmPassword: string;
+  };
+
+  type ResetPasswordWithTokenData = {
+    token: string;
+    password: string;
+  };
+
   type CountrySelectProps = {
     name: string;
     label: string;
@@ -55,12 +69,6 @@ declare global {
     text: string;
     linkText: string;
     href: string;
-  };
-
-  type SearchCommandProps = {
-    renderAs?: "button" | "text";
-    label?: string | React.ReactNode;
-    initialStocks: StockWithWatchlistStatus[];
   };
 
   type WelcomeEmailData = {
@@ -209,6 +217,7 @@ declare global {
     alertType: "upper" | "lower";
     threshold: number;
     frequency: "once" | "daily" | "hourly" | "minute";
+    lastTriggeredAt?: Date;
   };
 
   type AlertModalProps = {

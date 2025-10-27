@@ -109,3 +109,82 @@ export const signOut = async () => {
     return { success: false, error: "Sign out failed" };
   }
 };
+
+export const requestPasswordReset = async ({
+  email,
+}: ForgotPasswordFormData) => {
+  try {
+    if (!email) {
+      return { success: false, error: "Email is required" };
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return {
+        success: false,
+        error: "Invalid email format",
+      };
+    }
+
+    // Use better-auth's requestPasswordReset API
+    // We construct our own URL in sendResetPassword, so we don't need redirectTo
+    const response = await auth.api.requestPasswordReset({
+      body: { email },
+    });
+
+    return { success: true, data: response };
+  } catch (e) {
+    console.error("Password reset request failed", e);
+    const errorMessage =
+      e instanceof Error ? e.message : "Password reset request failed";
+
+    return {
+      success: false,
+      error:
+        errorMessage.includes("not found") || errorMessage.includes("invalid")
+          ? "No account found with this email address"
+          : "Failed to send password reset email. Please try again.",
+    };
+  }
+};
+
+export const resetPasswordWithToken = async ({
+  token,
+  password,
+}: ResetPasswordWithTokenData) => {
+  try {
+    if (!token || !password) {
+      return { success: false, error: "Token and password are required" };
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      return {
+        success: false,
+        error: "Password must be at least 8 characters",
+      };
+    }
+
+    // Use better-auth's resetPassword API
+    const response = await auth.api.resetPassword({
+      body: { token, newPassword: password },
+    });
+
+    return { success: true, data: response };
+  } catch (e) {
+    console.error("Password reset failed", e);
+    const errorMessage =
+      e instanceof Error ? e.message : "Password reset failed";
+
+    return {
+      success: false,
+      error:
+        errorMessage.includes("INVALID_TOKEN") ||
+        errorMessage.includes("expired") ||
+        errorMessage.includes("invalid token")
+          ? "Invalid or expired reset link. Please request a new one."
+          : "Failed to reset password. Please try again.",
+    };
+  }
+};

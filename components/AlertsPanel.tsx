@@ -41,6 +41,21 @@ const AlertsPanel = ({ watchlist }: { watchlist: StockWithData[] }) => {
     >
   >(new Map());
 
+  // Helper function to determine alert status
+  const getAlertStatus = (alert: AlertData) => {
+    if (alert.frequency === "once" && alert.lastTriggeredAt) {
+      return {
+        status: "completed",
+        label: "Completed",
+        bgColor: "bg-green-500",
+      };
+    }
+    if (alert.lastTriggeredAt) {
+      return { status: "active", label: "Active", bgColor: "bg-blue-500" };
+    }
+    return { status: "waiting", label: "Pending", bgColor: "bg-gray-500" };
+  };
+
   // Convert alerts Map to array and limit to 10
   const alertsArray = useMemo(
     () => Array.from(alerts.values()).slice().reverse().slice(0, 10),
@@ -171,17 +186,6 @@ const AlertsPanel = ({ watchlist }: { watchlist: StockWithData[] }) => {
             </EmptyHeader>
           </Empty>
         ) : (
-          // <Item variant="muted" className="text-center py-8">
-          //   <ItemMedia variant="icon">
-          //
-          //   </ItemMedia>
-          //   <ItemContent className="items-center">
-          //     <ItemTitle className="text-gray-400">No alerts yet</ItemTitle>
-          //     <ItemDescription className="text-gray-500">
-          //
-          //     </ItemDescription>
-          //   </ItemContent>
-          // </Item>
           <ItemGroup className="gap-3">
             {alertsArray.map((alert) => {
               // Get stock data from watchlist or fetched alert data
@@ -193,12 +197,19 @@ const AlertsPanel = ({ watchlist }: { watchlist: StockWithData[] }) => {
               const changePercent =
                 stockData?.changePercent ?? fetchedAlertData?.changePercent;
 
+              const alertStatus = getAlertStatus(alert);
+
               return (
                 <Item
                   key={alert.id}
                   variant="outline"
-                  className="bg-gray-700 border-0 border-t border-l border-gray-600 hover:border-gray-500 transition-all"
+                  className="relative bg-gray-700 border-0 border-t border-l border-gray-600 hover:border-gray-500 transition-all overflow-hidden"
                 >
+                  <div
+                    className={`absolute z-10 top-4 -left-10 ${alertStatus.bgColor} text-white text-xs px-10 py-1 -rotate-45 pointer-events-none font-semibold`}
+                  >
+                    <p>{alertStatus.label}</p>
+                  </div>
                   <div className="flex items-center text-sm gap-2.5 w-full">
                     <ItemMedia>
                       <Avatar className="size-11.5 rounded-sm">

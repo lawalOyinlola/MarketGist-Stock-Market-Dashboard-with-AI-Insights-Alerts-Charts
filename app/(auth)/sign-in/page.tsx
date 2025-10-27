@@ -100,6 +100,15 @@ const SignIn = () => {
           {isSubmitting ? "Signing In" : "Sign In"}
         </Button>
 
+        <div className="flex justify-end mt-2">
+          <a
+            href="/forgot-password"
+            className="text-sm text-gray-400 hover:text-app-color transition-colors"
+          >
+            Forgot password?
+          </a>
+        </div>
+
         <FooterLink
           text="Don't have an account?"
           linkText="Create an account"

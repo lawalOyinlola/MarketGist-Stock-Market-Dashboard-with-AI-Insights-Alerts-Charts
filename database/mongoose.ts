@@ -35,6 +35,20 @@ export const connectToDatabase = async () => {
         process.env.NODE_ENV || "development"
       })`
     );
+
+    // Optionally sync indexes (dev or explicit opt-in)
+    if (
+      process.env.SYNC_INDEXES_ON_START === "true" &&
+      (process.env.NODE_ENV ?? "development") !== "production"
+    ) {
+      try {
+        await mongoose.connection.syncIndexes();
+        console.log("✅ Indexes synchronized successfully");
+      } catch (syncError) {
+        console.error("⚠️ Warning: Index sync encountered issues:", syncError);
+        // Don't throw - connection is still valid; rely on init scripts in prod
+      }
+    }
   } catch (err) {
     cached.promise = null;
     console.error("❌ MongoDB connection error:", err);

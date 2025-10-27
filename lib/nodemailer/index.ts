@@ -8,6 +8,7 @@ import {
   INACTIVE_USER_REMINDER_EMAIL_TEMPLATE,
 } from "@/lib/nodemailer/templates";
 import sanitizeHtml from "sanitize-html";
+import { isUserUnsubscribed, getUnsubscribeUrl } from "@/lib/utils/email";
 
 const { NODEMAILER_EMAIL, NODEMAILER_PASSWORD } = process.env;
 
@@ -16,8 +17,9 @@ export const transporter = nodemailer.createTransport({
   auth: { user: NODEMAILER_EMAIL, pass: NODEMAILER_PASSWORD },
 });
 
-const sanitizeRich = (html: string) =>
-  sanitizeHtml(html, {
+const sanitizeRich = (html: string) => {
+  // First sanitize the HTML
+  const sanitized = sanitizeHtml(html, {
     allowedTags: ["b", "i", "em", "strong", "p", "br", "ul", "ol", "li", "a"],
     allowedAttributes: { a: ["href", "rel", "target"] },
     transformTags: {
@@ -28,11 +30,44 @@ const sanitizeRich = (html: string) =>
     },
   });
 
+  // Add inline styles for better readability
+  // Add color to paragraphs and list items
+  return sanitized
+    .replace(
+      /<p>/g,
+      '<p style="color: #333333; margin: 0 0 15px 0; font-size: 16px; line-height: 1.6;">'
+    )
+    .replace(
+      /<li>/g,
+      '<li style="color: #333333; margin: 0 0 10px 0; font-size: 16px; line-height: 1.6;">'
+    )
+    .replace(/<strong>/g, '<strong style="color: #000000; font-weight: 600;">')
+    .replace(/<em>/g, '<em style="color: #000000; font-style: italic;">')
+    .replace(
+      /<h3>/g,
+      '<h3 style="color: #000000; margin: 20px 0 10px 0; font-size: 18px; font-weight: 600;">'
+    )
+    .replace(
+      /<h4>/g,
+      '<h4 style="color: #000000; margin: 15px 0 8px 0; font-size: 16px; font-weight: 600;">'
+    )
+    .replace(
+      /<a(.*?)>/g,
+      '<a$1 style="color: #3b82f6; text-decoration: underline;">'
+    );
+};
+
 export const sendWelcomeEmail = async ({
   email,
   name,
   intro,
 }: WelcomeEmailData) => {
+  // Check if user is unsubscribed
+  if (await isUserUnsubscribed(email)) {
+    console.log(`Skipping welcome email to unsubscribed user: ${email}`);
+    return;
+  }
+
   const escape = (s: string) =>
     s.replace(
       /[&<>"']/g,
@@ -47,7 +82,7 @@ export const sendWelcomeEmail = async ({
     );
 
   const dashboardUrl = process.env.BETTER_AUTH_URL || "https://marketgist.com";
-  const unsubscribeUrl = `${dashboardUrl}/unsubscribe`;
+  const unsubscribeUrl = getUnsubscribeUrl(email);
 
   const htmlTemplate = WELCOME_EMAIL_TEMPLATE.replace("{{name}}", escape(name))
     .replace("{{intro}}", sanitizeRich(intro))
@@ -75,6 +110,12 @@ export const sendNewsSummaryEmail = async ({
   newsContent: string;
   name?: string;
 }): Promise<void> => {
+  // Check if user is unsubscribed
+  if (await isUserUnsubscribed(email)) {
+    console.log(`Skipping news summary email to unsubscribed user: ${email}`);
+    return;
+  }
+
   const escape = (s: string) =>
     s.replace(
       /[&<>"']/g,
@@ -89,7 +130,7 @@ export const sendNewsSummaryEmail = async ({
     );
 
   const dashboardUrl = process.env.BETTER_AUTH_URL || "https://marketgist.com";
-  const unsubscribeUrl = `${dashboardUrl}/unsubscribe`;
+  const unsubscribeUrl = getUnsubscribeUrl(email);
 
   const htmlTemplate = NEWS_SUMMARY_EMAIL_TEMPLATE.replace(
     "{{date}}",
@@ -143,13 +184,13 @@ export const sendStockAlertUpperEmail = async ({
   const unsubscribeUrl = `${dashboardUrl}/unsubscribe`;
 
   const htmlTemplate = STOCK_ALERT_UPPER_EMAIL_TEMPLATE.replace(
-    "{{symbol}}",
+    /\{\{symbol\}\}/g,
     escape(symbol)
   )
-    .replace("{{company}}", escape(company))
-    .replace("{{currentPrice}}", escape(currentPrice))
-    .replace("{{targetPrice}}", escape(targetPrice))
-    .replace("{{timestamp}}", escape(timestamp))
+    .replace(/\{\{company\}\}/g, escape(company))
+    .replace(/\{\{currentPrice\}\}/g, escape(currentPrice))
+    .replace(/\{\{targetPrice\}\}/g, escape(targetPrice))
+    .replace(/\{\{timestamp\}\}/g, escape(timestamp))
     .replace(/\{\{dashboardUrl\}\}/g, dashboardUrl)
     .replace(/\{\{unsubscribeUrl\}\}/g, unsubscribeUrl);
 
@@ -200,13 +241,13 @@ export const sendStockAlertLowerEmail = async ({
   const unsubscribeUrl = `${dashboardUrl}/unsubscribe`;
 
   const htmlTemplate = STOCK_ALERT_LOWER_EMAIL_TEMPLATE.replace(
-    "{{symbol}}",
+    /\{\{symbol\}\}/g,
     escape(symbol)
   )
-    .replace("{{company}}", escape(company))
-    .replace("{{currentPrice}}", escape(currentPrice))
-    .replace("{{targetPrice}}", escape(targetPrice))
-    .replace("{{timestamp}}", escape(timestamp))
+    .replace(/\{\{company\}\}/g, escape(company))
+    .replace(/\{\{currentPrice\}\}/g, escape(currentPrice))
+    .replace(/\{\{targetPrice\}\}/g, escape(targetPrice))
+    .replace(/\{\{timestamp\}\}/g, escape(timestamp))
     .replace(/\{\{dashboardUrl\}\}/g, dashboardUrl)
     .replace(/\{\{unsubscribeUrl\}\}/g, unsubscribeUrl);
 

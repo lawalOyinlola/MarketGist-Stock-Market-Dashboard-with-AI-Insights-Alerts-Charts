@@ -112,6 +112,26 @@ async function fetchJSON<T>(
 
 export { fetchJSON };
 
+// Get current quote (price) for a symbol
+export async function getQuote(symbol: string): Promise<QuoteData | null> {
+  try {
+    const token = FINNHUB_API_KEY;
+    if (!token) {
+      console.error("FINNHUB API key is not configured");
+      return null;
+    }
+
+    const url = `${FINNHUB_BASE_URL}/quote?symbol=${encodeURIComponent(
+      symbol
+    )}&token=${token}`;
+    const quote = await fetchJSON<QuoteData>(url, 60);
+    return quote;
+  } catch (err) {
+    console.error(`Error fetching quote for ${symbol}:`, err);
+    return null;
+  }
+}
+
 export async function getNews(
   symbols?: string[]
 ): Promise<MarketNewsArticle[]> {
@@ -308,8 +328,9 @@ export const searchStocks = cache(async (query?: string): Promise<Stock[]> => {
   }
 });
 
-export const getWatchlistWithData = cache(
-  async (): Promise<StockWithData[]> => {
+// Per-email cached wrapper to prevent cross-user cache leaks
+const getWatchlistWithDataCached = cache(
+  async (email: string): Promise<StockWithData[]> => {
     try {
       const token = FINNHUB_API_KEY;
       if (!token) {
@@ -317,18 +338,32 @@ export const getWatchlistWithData = cache(
         return [];
       }
 
-      // Get user's watchlist symbols
-      const { getAuth } = await import("@/lib/better-auth/auth");
-      const { headers } = await import("next/headers");
-      const auth = await getAuth();
-      const session = await auth.api.getSession({ headers: await headers() });
+      if (!email) return [];
 
-      if (!session?.user?.email) return [];
+      // Get user ID from email
+      const { connectToDatabase } = await import("@/database/mongoose");
+      const mongoose = await connectToDatabase();
+      const db = mongoose.connection.db;
+      if (!db) throw new Error("MongoDB connection not found");
+
+      const user = await db
+        .collection("user")
+        .findOne<{ _id?: unknown; id?: string; email?: string }>({ email });
+
+      if (!user) return [];
+
+      const userId =
+        (user.id as string) ??
+        (user._id as { toHexString?: () => string })?.toHexString?.() ??
+        (user._id as { toString?: () => string })?.toString?.() ??
+        "";
+
+      if (!userId) return [];
 
       const { getWatchlistSymbolsByEmail } = await import(
         "@/lib/actions/watchlist.actions"
       );
-      const symbols = await getWatchlistSymbolsByEmail(session.user.email);
+      const symbols = await getWatchlistSymbolsByEmail(email);
 
       if (symbols.length === 0) return [];
 
@@ -354,7 +389,7 @@ export const getWatchlistWithData = cache(
             ]);
 
             return {
-              userId: session.user.id,
+              userId,
               symbol,
               company: profile.name || symbol,
               addedAt: new Date(), // You might want to store this in your DB
@@ -386,3 +421,27 @@ export const getWatchlistWithData = cache(
     }
   }
 );
+
+export async function getWatchlistWithData(
+  email?: string
+): Promise<StockWithData[]> {
+  // If email is provided, use per-email cached version
+  if (email) {
+    return getWatchlistWithDataCached(email);
+  }
+
+  // Fallback for client-side calls without email (legacy support)
+  try {
+    const { getAuth } = await import("@/lib/better-auth/auth");
+    const { headers } = await import("next/headers");
+    const auth = await getAuth();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session?.user?.email) return [];
+
+    return getWatchlistWithDataCached(session.user.email);
+  } catch (err) {
+    console.error("Error in getWatchlistWithData:", err);
+    return [];
+  }
+}

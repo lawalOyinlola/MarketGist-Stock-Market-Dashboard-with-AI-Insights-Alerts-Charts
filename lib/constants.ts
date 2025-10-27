@@ -1,3 +1,5 @@
+export const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
+
 interface NavItem {
   href: string;
   label: string;

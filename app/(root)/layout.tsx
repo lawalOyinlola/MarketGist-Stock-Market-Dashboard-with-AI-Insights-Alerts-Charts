@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { WatchlistProvider } from "@/components/WatchlistProvider";
 import { AlertProvider } from "@/components/AlertProvider";
+import { NotificationPoller } from "@/components/NotificationPoller";
 import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 import { getAlertsByEmail } from "@/lib/actions/alert.actions";
 import { getWatchlistWithData } from "@/lib/actions/finnhub.actions";
@@ -26,7 +27,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
     ? await Promise.all([
         getWatchlistSymbolsByEmail(session.user.email),
         getAlertsByEmail(session.user.email),
-        getWatchlistWithData(),
+        getWatchlistWithData(session.user.email),
       ])
     : ([[], [], []] as [string[], AlertData[], StockWithData[]]);
 
@@ -35,8 +36,10 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
       <WatchlistProvider
         initialSymbols={initialWatchlistSymbols}
         initialWatchlistData={initialWatchlistData}
+        email={session.user.email}
       >
         <AlertProvider initialAlerts={initialAlerts}>
+          <NotificationPoller />
           <Header user={user} />
           <div className="container py-10">{children}</div>
         </AlertProvider>

@@ -7,8 +7,10 @@ import { NAV_ITEMS } from "@/lib/constants";
 
 const NavItems = ({
   initialStocks,
+  onItemClick,
 }: {
   initialStocks: StockWithWatchlistStatus[];
+  onItemClick?: () => void;
 }) => {
   const pathname = usePathname();
 
@@ -18,12 +20,18 @@ const NavItems = ({
     return pathname.startsWith(path);
   };
 
+  const handleItemClick = () => {
+    if (onItemClick) {
+      onItemClick();
+    }
+  };
+
   return (
     <ul className="flex flex-col sm:flex-row p-2 gap-3 sm:gap-10 font-medium">
       {NAV_ITEMS.map(({ href, label }) => {
         if (href === "/search")
           return (
-            <li key="search-trigger">
+            <li key="search-trigger" onClick={handleItemClick}>
               <SearchCommand
                 renderAs="text"
                 label="Search"
@@ -33,7 +41,7 @@ const NavItems = ({
           );
 
         return (
-          <li key={href}>
+          <li key={href} onClick={handleItemClick}>
             <Link
               href={href}
               className={`hover:text-app-color transition-colors ${
