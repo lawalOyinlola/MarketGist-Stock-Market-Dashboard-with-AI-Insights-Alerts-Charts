@@ -31,6 +31,7 @@ type AlertContextValue = {
     alertId: string,
     updates: {
       alertName?: string;
+      alertType?: "upper" | "lower";
       threshold?: number;
       frequency?: "once" | "daily" | "hourly" | "minute";
     }
@@ -116,7 +117,9 @@ export function AlertProvider({
         });
         return false;
       } catch (e) {
-        toast.error("Failed to create alert", { description: "Network error" });
+        toast.error("Failed to create alert", {
+          description: "An unexpected error occurred",
+        });
         return false;
       }
     },
@@ -144,7 +147,9 @@ export function AlertProvider({
       });
       return false;
     } catch (e) {
-      toast.error("Failed to remove alert", { description: "Network error" });
+      toast.error("Failed to update alert", {
+        description: "An unexpected error occurred",
+      });
       return false;
     }
   }, []);
@@ -154,6 +159,7 @@ export function AlertProvider({
       alertId: string,
       updates: {
         alertName?: string;
+        alertType?: "upper" | "lower";
         threshold?: number;
         frequency?: "once" | "daily" | "hourly" | "minute";
       }
@@ -181,7 +187,9 @@ export function AlertProvider({
         });
         return false;
       } catch (e) {
-        toast.error("Failed to update alert", { description: "Network error" });
+        toast.error("Failed to update alert", {
+          description: "An unexpected error occurred",
+        });
         return false;
       }
     },

@@ -23,27 +23,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const url = `${FINNHUB_BASE_URL}/quote?symbol=${encodeURIComponent(
+    const url = `${FINNHUB_BASE_URL}/stock/profile2?symbol=${encodeURIComponent(
       symbol
     )}&token=${FINNHUB_API_KEY}`;
-    const quoteData = await fetchJSON<{
-      c?: number; // current price
-      d?: number; // change
-      dp?: number; // percent change
-      h?: number; // high price of the day
-      l?: number; // low price of the day
-      o?: number; // open price of the day
-      pc?: number; // previous close price
-      t?: number; // timestamp
-    }>(url, 60); // Cache for 1 minute
 
-    return NextResponse.json(quoteData, {
-      headers: { "Cache-Control": "private, max-age=60" },
-    });
+    // Cache for 1 hour (3600 seconds)
+    const profile = await fetchJSON<Record<string, unknown>>(url, 3600);
+
+    return NextResponse.json(profile);
   } catch (error) {
-    console.error("Error fetching quote:", error);
+    console.error("Error fetching stock profile:", error);
     return NextResponse.json(
-      { error: "Failed to fetch quote data" },
+      { error: "Failed to fetch stock profile" },
       { status: 500 }
     );
   }

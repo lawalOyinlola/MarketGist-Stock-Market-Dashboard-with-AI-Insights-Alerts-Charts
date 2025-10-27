@@ -1,11 +1,8 @@
 "use client";
 
-import WatchlistButton from "@/components/WatchlistButton";
-import AlertButton from "@/components/AlertButton";
-import AlertsPanel from "@/components/AlertsPanel";
+import Link from "next/link";
 import { useWatchlist } from "@/components/WatchlistProvider";
 import { WATCHLIST_TABLE_HEADER } from "@/lib/constants";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -19,31 +16,41 @@ import {
   EmptyContent,
   EmptyDescription,
   EmptyHeader,
+  EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import WatchlistButton from "@/components/WatchlistButton";
+import AlertButton from "@/components/AlertButton";
+import { StarOffIcon } from "lucide-react";
 
-export default function WatchlistTable({ watchlist }: WatchlistTableProps) {
-  const { isInWatchlist } = useWatchlist();
+export default function WatchlistTable() {
+  const { watchlistData, isInWatchlist } = useWatchlist();
 
-  // Use the provided watchlist data
-  const rows: StockWithData[] = watchlist || [];
+  // Use the watchlist data from context
+  const rows: StockWithData[] = watchlistData || [];
 
   if (rows.length === 0) {
     return (
-      <Empty className="border border-dashed">
-        <EmptyHeader>
-          <EmptyTitle>No Watchlist Yet</EmptyTitle>
-          <EmptyDescription>
-            Your watchlist is empty. Use the search to add stocks to track.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <Button size="sm" variant="outline" asChild>
-            <Link href="/">Browse Stocks</Link>
-          </Button>
-        </EmptyContent>
-      </Empty>
+      <>
+        <Empty className="border border-dashed">
+          <EmptyHeader>
+            <EmptyMedia variant="icon" className="bg-gray-700/70">
+              <StarOffIcon className={`star-icon`} />
+            </EmptyMedia>
+            <EmptyTitle>No Watchlist Yet</EmptyTitle>
+            <EmptyDescription>
+              Your watchlist is empty. Use the "add stock" button to add stocks
+              to your watchlist.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button variant="outline" asChild>
+              <Link href="/">Back to Home</Link>
+            </Button>
+          </EmptyContent>
+        </Empty>
+      </>
     );
   }
 
@@ -51,7 +58,7 @@ export default function WatchlistTable({ watchlist }: WatchlistTableProps) {
     <div className="overflow-hidden rounded-md border !bg-gray-800">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-700 text-gray-400">
+          <TableRow className="bg-gray-700 text-gray-400 hover:bg-gray-700">
             {WATCHLIST_TABLE_HEADER.map((head) => (
               <TableHead key={head} className="h-11 text-left">
                 {head}
@@ -63,7 +70,7 @@ export default function WatchlistTable({ watchlist }: WatchlistTableProps) {
           {rows.map((row) => (
             <TableRow
               key={`${row.symbol}-${row.userId}`}
-              className="*:text-left *:border-border [&>:not(:last-child)]:border-r"
+              className="*:text-left *:border-border [&>:not(:last-child)]:border-r hover:bg-gray-700/40"
             >
               {/* Company (with watchlist button) */}
               <TableCell>
