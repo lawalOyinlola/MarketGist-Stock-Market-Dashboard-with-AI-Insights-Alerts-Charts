@@ -194,7 +194,7 @@ export async function updateAlert(
     alertName?: string;
     alertType?: "upper" | "lower";
     threshold?: number;
-    frequency?: "once" | "daily" | "hourly" | "minute";
+    frequency?: "once" | "daily" | "hourly";
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {

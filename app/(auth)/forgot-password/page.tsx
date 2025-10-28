@@ -134,7 +134,12 @@ const ForgotPassword = () => {
             {remainingSeconds > 0 ? (
               <span className="flex items-center gap-2">
                 Retry in
-                <span className="inline-flex items-center gap-1">
+                <span
+                  className="inline-flex items-center gap-1"
+                  aria-label={`Retry in ${Math.floor(
+                    remainingSeconds / 60
+                  )} minutes ${remainingSeconds % 60} seconds`}
+                >
                   <SlidingNumber
                     value={Math.floor(remainingSeconds / 60)}
                     padStart

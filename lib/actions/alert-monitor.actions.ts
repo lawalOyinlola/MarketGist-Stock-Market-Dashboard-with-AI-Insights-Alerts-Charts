@@ -125,6 +125,7 @@ export async function checkAlertsAndTrigger(): Promise<{
                   updateResult = await Alert.updateOne(
                     {
                       _id: alert._id,
+                      isActive: true,
                       $or: [
                         { lastTriggeredAt: { $exists: false } },
                         { lastTriggeredAt: lastTriggered },
@@ -148,12 +149,33 @@ export async function checkAlertsAndTrigger(): Promise<{
                   `Alert triggered: ${symbol} - ${alert.alertType} threshold ${alert.threshold}, current: ${currentPrice}, frequency: ${alert.frequency}`
                 );
 
-                // Get user email
-                const user = await db
+                // Get user email - fetch the exact user by app id, then fallback to Mongo _id
+                let user = await db
                   .collection("user")
                   .findOne<{ _id?: unknown; id?: string; email?: string }>({
-                    email: { $exists: true },
+                    id: alert.userId,
                   });
+
+                if (!user) {
+                  try {
+                    // Attempt lookup by ObjectId when alert.userId is a Mongo _id
+                    const maybeObjectId = new (mongoose as any).Types.ObjectId(
+                      alert.userId
+                    );
+                    user = await db
+                      .collection("user")
+                      .findOne<{ _id?: unknown; id?: string; email?: string }>({
+                        _id: maybeObjectId,
+                      });
+                  } catch (_) {
+                    // Non-ObjectId userId; fallback attempt by string equality on _id
+                    user = await db
+                      .collection("user")
+                      .findOne<{ _id?: unknown; id?: string; email?: string }>({
+                        _id: alert.userId as any,
+                      });
+                  }
+                }
 
                 if (!user?.email) {
                   errors.push(`No email found for user ${alert.userId}`);
@@ -167,8 +189,8 @@ export async function checkAlertsAndTrigger(): Promise<{
                 const timestamp = new Date();
                 const timestampISO = timestamp.toISOString();
 
-                // Generate deterministic ID for idempotency within a per-minute window
-                // This prevents duplicate alert sends on retries while allowing new alerts each minute
+                // Generate deterministic ID for idempotency within a time window
+                // This prevents duplicate alert sends on retries while allowing new alerts next window
                 const eventId = `${alert._id}:${Math.floor(
                   timestamp.getTime() / 60000
                 )}`;
