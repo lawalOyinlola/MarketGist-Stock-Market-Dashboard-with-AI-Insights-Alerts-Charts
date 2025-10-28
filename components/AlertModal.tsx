@@ -264,7 +264,7 @@ const AlertModal = ({
 
               {(isEditMode && alertToEdit
                 ? [alertToEdit]
-                : existingAlerts.slice().reverse().slice(0, 2)
+                : existingAlerts.slice(-2).reverse()
               ).map((alert: AlertData) => (
                 <div key={alert.id} className="p-3 border rounded-lg">
                   {editingAlertId === alert.id ? (

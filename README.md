@@ -101,7 +101,7 @@ stocks/
 
 2. **Stock Monitoring Flow**
 
-   - Background cron job (every 2 minutes) checks all active alerts
+   - Background cron job (every hour) checks all active alerts
    - Fetches current prices from Finnhub API
    - Compares with alert thresholds
    - Atomically updates lastTriggeredAt to prevent race conditions
