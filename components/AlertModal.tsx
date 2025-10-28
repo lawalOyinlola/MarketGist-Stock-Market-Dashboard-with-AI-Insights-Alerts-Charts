@@ -214,7 +214,7 @@ const AlertModal = ({
     }
   });
 
-  const startEditing = (alert: any) => {
+  const startEditing = (alert: AlertData) => {
     setEditingAlertId(alert.id);
     // Reset form with alert data
     resetEdit({
@@ -265,7 +265,7 @@ const AlertModal = ({
               {(isEditMode && alertToEdit
                 ? [alertToEdit]
                 : existingAlerts.slice().reverse().slice(0, 2)
-              ).map((alert: any) => (
+              ).map((alert: AlertData) => (
                 <div key={alert.id} className="p-3 border rounded-lg">
                   {editingAlertId === alert.id ? (
                     <form onSubmit={handleEditAlert} className="space-y-4">

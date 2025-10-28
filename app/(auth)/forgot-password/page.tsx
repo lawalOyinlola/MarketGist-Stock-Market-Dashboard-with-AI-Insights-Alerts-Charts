@@ -29,23 +29,32 @@ const ForgotPassword = () => {
         : null;
     if (stored) {
       const ts = parseInt(stored, 10);
-      if (!Number.isNaN(ts) && ts > Date.now()) {
-        setCooldownUntil(ts);
+      if (!Number.isNaN(ts)) {
+        if (ts > Date.now()) {
+          setCooldownUntil(ts);
+        } else if (typeof window !== "undefined") {
+          localStorage.removeItem("forgot_pwd_cooldown_until");
+        }
       }
     }
   }, []);
 
   useEffect(() => {
     if (!cooldownUntil) return;
-    const tick = setInterval(() => setNow(Date.now()), 250);
-    if (remainingMs <= 0) {
-      clearInterval(tick);
-      setCooldownUntil(null);
-      if (typeof window !== "undefined")
-        localStorage.removeItem("forgot_pwd_cooldown_until");
-    }
+    const tick = setInterval(() => {
+      const msLeft = Math.max(0, cooldownUntil - Date.now());
+      if (msLeft <= 0) {
+        clearInterval(tick);
+        setCooldownUntil(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("forgot_pwd_cooldown_until");
+        }
+      } else {
+        setNow(Date.now());
+      }
+    }, 1000);
     return () => clearInterval(tick);
-  }, [cooldownUntil, remainingMs]);
+  }, [cooldownUntil]);
 
   const {
     register,

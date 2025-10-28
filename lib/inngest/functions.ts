@@ -426,9 +426,9 @@ export const monitorStockAlerts = inngest.createFunction(
       // Add timeout protection at the action level as well
       return await Promise.race([
         checkAlertsAndTrigger(),
-        new Promise<{ triggered: any[]; errors: string[] }>((_, reject) =>
+        new Promise<{ triggered: any[]; errors: string[] }>((resolve) =>
           setTimeout(
-            () => reject(new Error("Alert check timed out")),
+            () => resolve({ triggered: [], errors: ["Alert check timed out"] }),
             3 * 60 * 1000
           )
         ),

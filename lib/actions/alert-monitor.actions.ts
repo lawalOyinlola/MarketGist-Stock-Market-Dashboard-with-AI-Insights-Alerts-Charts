@@ -73,190 +73,210 @@ export async function checkAlertsAndTrigger(): Promise<{
 
             // Check each alert for this symbol
             for (const alert of symbolAlerts) {
-              const shouldTrigger =
-                alert.alertType === "upper"
-                  ? currentPrice >= alert.threshold
-                  : currentPrice <= alert.threshold;
+              try {
+                const shouldTrigger =
+                  alert.alertType === "upper"
+                    ? currentPrice >= alert.threshold
+                    : currentPrice <= alert.threshold;
 
-              if (shouldTrigger) {
-                // Use atomic database operation to check and update frequency constraints
-                // This prevents race conditions by making DB the single source of truth
-                const now = new Date();
-                const lastTriggered = alert.lastTriggeredAt
-                  ? new Date(alert.lastTriggeredAt)
-                  : null;
-                let updateResult: any;
+                if (shouldTrigger) {
+                  // Use atomic database operation to check and update frequency constraints
+                  // This prevents race conditions by making DB the single source of truth
+                  const now = new Date();
+                  const lastTriggered = alert.lastTriggeredAt
+                    ? new Date(alert.lastTriggeredAt)
+                    : null;
+                  let updateResult: any;
 
-                if (alert.frequency === "once") {
-                  // Atomically check isActive and deactivate
-                  updateResult = await Alert.updateOne(
-                    { _id: alert._id, isActive: true },
-                    { $set: { isActive: false, lastTriggeredAt: now } }
-                  );
-                } else {
-                  // Pre-check time window before attempting update
-                  if (lastTriggered) {
-                    const timeSinceLastTrigger =
-                      now.getTime() - lastTriggered.getTime();
-                    let minTimeWindow = 0;
+                  if (alert.frequency === "once") {
+                    // Atomically check isActive and deactivate
+                    updateResult = await Alert.updateOne(
+                      { _id: alert._id, isActive: true },
+                      { $set: { isActive: false, lastTriggeredAt: now } }
+                    );
+                  } else {
+                    // Pre-check time window before attempting update
+                    if (lastTriggered) {
+                      const timeSinceLastTrigger =
+                        now.getTime() - lastTriggered.getTime();
+                      let minTimeWindow = 0;
 
-                    switch (alert.frequency) {
-                      case "hourly":
-                        minTimeWindow = 60 * 60 * 1000;
-                        break;
-                      case "daily":
-                        minTimeWindow = 24 * 60 * 60 * 1000;
-                        break;
+                      switch (alert.frequency) {
+                        case "hourly":
+                          minTimeWindow = 60 * 60 * 1000;
+                          break;
+                        case "daily":
+                          minTimeWindow = 24 * 60 * 60 * 1000;
+                          break;
+                        default:
+                          console.error(
+                            `Unknown frequency: ${alert.frequency}, defaulting to daily`
+                          );
+                          minTimeWindow = 24 * 60 * 60 * 1000;
+                          break;
+                      }
+
+                      if (timeSinceLastTrigger < minTimeWindow) {
+                        console.log(
+                          `Alert ${
+                            alert.alertName || alert._id
+                          } (${symbol}) skipping due to frequency constraint (${
+                            alert.frequency
+                          })`
+                        );
+                        continue;
+                      }
                     }
 
-                    if (timeSinceLastTrigger < minTimeWindow) {
-                      console.log(
-                        `Alert ${
-                          alert.alertName || alert._id
-                        } (${symbol}) skipping due to frequency constraint (${
-                          alert.frequency
-                        })`
-                      );
-                      continue;
-                    }
+                    // Atomically update with optimistic concurrency control
+                    updateResult = await Alert.updateOne(
+                      {
+                        _id: alert._id,
+                        isActive: true,
+                        $or: [
+                          { lastTriggeredAt: { $exists: false } },
+                          { lastTriggeredAt: lastTriggered },
+                        ],
+                      },
+                      { $set: { lastTriggeredAt: now } }
+                    );
                   }
 
-                  // Atomically update with optimistic concurrency control
-                  updateResult = await Alert.updateOne(
-                    {
-                      _id: alert._id,
-                      isActive: true,
-                      $or: [
-                        { lastTriggeredAt: { $exists: false } },
-                        { lastTriggeredAt: lastTriggered },
-                      ],
-                    },
-                    { $set: { lastTriggeredAt: now } }
-                  );
-                }
-
-                // Only proceed if DB update actually modified a document
-                if (updateResult.modifiedCount === 0) {
-                  console.log(
-                    `Alert ${
-                      alert.alertName || alert._id
-                    } (${symbol}) skipped - already triggered by another process`
-                  );
-                  continue;
-                }
-
-                console.log(
-                  `Alert triggered: ${symbol} - ${alert.alertType} threshold ${alert.threshold}, current: ${currentPrice}, frequency: ${alert.frequency}`
-                );
-
-                // Get user email - fetch the exact user by app id, then fallback to Mongo _id
-                let user = await db
-                  .collection("user")
-                  .findOne<{ _id?: unknown; id?: string; email?: string }>({
-                    id: alert.userId,
-                  });
-
-                if (!user) {
-                  try {
-                    // Attempt lookup by ObjectId when alert.userId is a Mongo _id
-                    const maybeObjectId = new (mongoose as any).Types.ObjectId(
-                      alert.userId
+                  // Only proceed if DB update actually modified a document
+                  if (updateResult.modifiedCount === 0) {
+                    console.log(
+                      `Alert ${
+                        alert.alertName || alert._id
+                      } (${symbol}) skipped - already triggered by another process`
                     );
-                    user = await db
-                      .collection("user")
-                      .findOne<{ _id?: unknown; id?: string; email?: string }>({
+                    continue;
+                  }
+
+                  console.log(
+                    `Alert triggered: ${symbol} - ${alert.alertType} threshold ${alert.threshold}, current: ${currentPrice}, frequency: ${alert.frequency}`
+                  );
+
+                  // Get user email - fetch the exact user by app id, then fallback to Mongo _id
+                  let user = await db
+                    .collection("user")
+                    .findOne<{ _id?: unknown; id?: string; email?: string }>({
+                      id: alert.userId,
+                    });
+
+                  if (!user) {
+                    try {
+                      // Attempt lookup by ObjectId when alert.userId is a Mongo _id
+                      const maybeObjectId = new (
+                        mongoose as any
+                      ).Types.ObjectId(alert.userId);
+                      user = await db.collection("user").findOne<{
+                        _id?: unknown;
+                        id?: string;
+                        email?: string;
+                      }>({
                         _id: maybeObjectId,
                       });
-                  } catch (_) {
-                    // Non-ObjectId userId; fallback attempt by string equality on _id
-                    user = await db
-                      .collection("user")
-                      .findOne<{ _id?: unknown; id?: string; email?: string }>({
+                    } catch (_) {
+                      // Non-ObjectId userId; fallback attempt by string equality on _id
+                      user = await db.collection("user").findOne<{
+                        _id?: unknown;
+                        id?: string;
+                        email?: string;
+                      }>({
                         _id: alert.userId as any,
                       });
+                    }
                   }
-                }
 
-                if (!user?.email) {
-                  errors.push(`No email found for user ${alert.userId}`);
-                  continue;
-                }
+                  if (!user?.email) {
+                    errors.push(`No email found for user ${alert.userId}`);
+                    continue;
+                  }
 
-                // Get company name (could be from a profile lookup, but let's use the alert's company field)
-                const company = alert.company || symbol;
+                  // Get company name (could be from a profile lookup, but let's use the alert's company field)
+                  const company = alert.company || symbol;
 
-                const targetPrice = alert.threshold;
-                const timestamp = new Date();
-                const timestampISO = timestamp.toISOString();
+                  const targetPrice = alert.threshold;
+                  const timestamp = new Date();
+                  const timestampISO = timestamp.toISOString();
 
-                // Generate deterministic ID for idempotency within a time window
-                // This prevents duplicate alert sends on retries while allowing new alerts next window
-                const eventId = `${alert._id}:${Math.floor(
-                  timestamp.getTime() / 60000
-                )}`;
+                  // Generate deterministic ID for idempotency within a time window
+                  // This prevents duplicate alert sends on retries while allowing new alerts next window
+                  const eventId = `${alert._id}:${Math.floor(
+                    timestamp.getTime() / 60000
+                  )}`;
 
-                // Trigger the appropriate Inngest event
-                if (alert.alertType === "upper") {
-                  await inngest.send({
-                    id: eventId,
-                    name: "app/stock.alert.upper",
-                    data: {
+                  // Trigger the appropriate Inngest event
+                  if (alert.alertType === "upper") {
+                    await inngest.send({
                       id: eventId,
-                      email: user.email,
-                      symbol,
-                      company,
-                      currentPrice,
-                      targetPrice,
-                      timestamp: timestampISO,
-                    },
-                  });
-                } else {
-                  await inngest.send({
-                    id: eventId,
-                    name: "app/stock.alert.lower",
-                    data: {
+                      name: "app/stock.alert.upper",
+                      data: {
+                        id: eventId,
+                        email: user.email,
+                        symbol,
+                        company,
+                        currentPrice,
+                        targetPrice,
+                        timestamp: timestampISO,
+                      },
+                    });
+                  } else {
+                    await inngest.send({
                       id: eventId,
-                      email: user.email,
-                      symbol,
-                      company,
-                      currentPrice,
-                      targetPrice,
-                      timestamp: timestampISO,
-                    },
-                  });
-                }
+                      name: "app/stock.alert.lower",
+                      data: {
+                        id: eventId,
+                        email: user.email,
+                        symbol,
+                        company,
+                        currentPrice,
+                        targetPrice,
+                        timestamp: timestampISO,
+                      },
+                    });
+                  }
 
-                triggered.push({
-                  alertId: (alert._id as any).toString(),
-                  userId: alert.userId,
-                  symbol,
-                  company,
-                  alertType: alert.alertType,
-                  threshold: alert.threshold,
-                  currentPrice,
-                });
-
-                // Create a notification for the user
-                try {
-                  await Notification.create({
+                  triggered.push({
+                    alertId: (alert._id as any).toString(),
                     userId: alert.userId,
-                    type: "price_alert",
-                    title: `Price Alert: ${symbol} ${
-                      alert.alertType === "upper" ? "▲" : "▼"
-                    }`,
-                    message: `${company} (${symbol}) hit your ${
-                      alert.alertType === "upper" ? "upper" : "lower"
-                    } target of $${targetPrice}. Current price: $${currentPrice.toFixed(
-                      2
-                    )}.`,
                     symbol,
-                    isRead: false,
+                    company,
+                    alertType: alert.alertType,
+                    threshold: alert.threshold,
+                    currentPrice,
                   });
-                } catch (notifError) {
-                  console.error("Failed to create notification:", notifError);
-                }
 
-                // DB update already happened above - DB is the single source of truth
+                  // Create a notification for the user
+                  try {
+                    await Notification.create({
+                      userId: alert.userId,
+                      type: "price_alert",
+                      title: `Price Alert: ${symbol} ${
+                        alert.alertType === "upper" ? "▲" : "▼"
+                      }`,
+                      message: `${company} (${symbol}) hit your ${
+                        alert.alertType === "upper" ? "upper" : "lower"
+                      } target of $${targetPrice}. Current price: $${currentPrice.toFixed(
+                        2
+                      )}.`,
+                      symbol,
+                      isRead: false,
+                    });
+                  } catch (notifError) {
+                    console.error("Failed to create notification:", notifError);
+                  }
+
+                  // DB update already happened above - DB is the single source of truth
+                }
+              } catch (alertError) {
+                errors.push(
+                  `Failed to process alert ${alert._id} for ${symbol}: ${
+                    alertError instanceof Error
+                      ? alertError.message
+                      : "Unknown error"
+                  }`
+                );
               }
             }
           } catch (error) {

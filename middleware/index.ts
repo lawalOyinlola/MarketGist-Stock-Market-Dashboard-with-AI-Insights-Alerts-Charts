@@ -22,9 +22,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect non-public routes for unauthenticated users
-  const isPublic = [...publicRoutes].some((route) =>
-    pathname.startsWith(route)
-  );
+  let isPublic = false;
+  for (const route of publicRoutes) {
+    if (pathname.startsWith(route)) {
+      isPublic = true;
+      break;
+    }
+  }
   if (!sessionCookie && !isPublic) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }

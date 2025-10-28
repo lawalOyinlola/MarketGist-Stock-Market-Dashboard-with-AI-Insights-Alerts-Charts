@@ -117,6 +117,7 @@ export { fetchJSON };
 export async function getQuote(symbol: string): Promise<QuoteData | null> {
   try {
     if (FINNHUB_DISABLE) {
+      console.debug("Finnhub API disabled, returning null");
       return null;
     }
     const token = FINNHUB_API_KEY;
@@ -141,6 +142,7 @@ export async function getNews(
 ): Promise<MarketNewsArticle[]> {
   try {
     if (FINNHUB_DISABLE) {
+      console.debug("Finnhub API disabled, returning null");
       return [];
     }
     const range = getDateRange(5);
@@ -233,6 +235,7 @@ export async function getNews(
 export const searchStocks = cache(async (query?: string): Promise<Stock[]> => {
   try {
     if (FINNHUB_DISABLE) {
+      console.debug("Finnhub API disabled, returning null");
       return [];
     }
     const token = FINNHUB_API_KEY;
@@ -343,6 +346,7 @@ const getWatchlistWithDataCached = cache(
   async (email: string): Promise<StockWithData[]> => {
     try {
       if (FINNHUB_DISABLE) {
+        console.debug("Finnhub API disabled, returning null");
         return [];
       }
       const token = FINNHUB_API_KEY;
