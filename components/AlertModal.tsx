@@ -64,7 +64,7 @@ const AlertModal = ({
     alertName: string;
     alertType: "upper" | "lower";
     threshold: string;
-    frequency: "once" | "daily" | "hourly" | "minute";
+    frequency: "once" | "daily" | "hourly";
   }>({
     defaultValues: {
       alertName: "",
@@ -86,7 +86,7 @@ const AlertModal = ({
     alertName: string;
     alertType: "upper" | "lower";
     threshold: string;
-    frequency: "once" | "daily" | "hourly" | "minute";
+    frequency: "once" | "daily" | "hourly";
   }>({
     defaultValues: {
       alertName: "",
@@ -371,9 +371,7 @@ const AlertModal = ({
                             ? "Once"
                             : alert.frequency === "daily"
                             ? "Once per day"
-                            : alert.frequency === "hourly"
-                            ? "Once per hour"
-                            : "Once per minute"}
+                            : "Once per hour"}
                         </ItemFooter>
                       </ItemContent>
                       <ItemActions className="gap-2 *:!p-1">

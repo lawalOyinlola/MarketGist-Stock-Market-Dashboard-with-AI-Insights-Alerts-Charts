@@ -21,6 +21,7 @@ const ResetPasswordContent = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isValidatingToken, setIsValidatingToken] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     // Check if there's an error in the URL (from better-auth redirect)
@@ -75,6 +76,7 @@ const ResetPasswordContent = () => {
         toast.success("Password reset successful!", {
           description: "Redirecting to sign in...",
         });
+        setIsRedirecting(true);
         setTimeout(() => {
           router.push("/sign-in");
         }, 1500);
@@ -168,9 +170,13 @@ const ResetPasswordContent = () => {
           </InputGroupAddon>
         </InputGroupField>
 
-        <Button type="submit" disabled={isSubmitting} className="auth-btn mt-5">
+        <Button
+          type="submit"
+          disabled={isSubmitting || isRedirecting}
+          className="auth-btn mt-5"
+        >
           {isSubmitting && <Spinner />}
-          {isSubmitting ? "Resetting..." : "Reset Password"}
+          {isSubmitting || isRedirecting ? "Resetting..." : "Reset Password"}
         </Button>
 
         <FooterLink

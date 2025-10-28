@@ -412,15 +412,27 @@ export const sendInactiveUserReminder = inngest.createFunction(
 
 // Stock Price Alert Monitoring - checks prices and triggers alerts
 export const monitorStockAlerts = inngest.createFunction(
-  { id: "monitor-stock-alerts", concurrency: 1 }, // Prevent race conditions by running one instance at a time
-  [{ cron: "*/2 * * * *" }], // Every 2 minutes (improved responsiveness)
+  {
+    id: "monitor-stock-alerts",
+    concurrency: 1, // Prevent race conditions by running one instance at a time
+  },
+  [{ cron: "0 * * * *" }], // Every hour on the hour
   async ({ step }) => {
     const { checkAlertsAndTrigger } = await import(
       "@/lib/actions/alert-monitor.actions"
     );
 
     const result = await step.run("check-alerts-and-trigger", async () => {
-      return await checkAlertsAndTrigger();
+      // Add timeout protection at the action level as well
+      return await Promise.race([
+        checkAlertsAndTrigger(),
+        new Promise<{ triggered: any[]; errors: string[] }>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Alert check timed out")),
+            3 * 60 * 1000
+          )
+        ),
+      ]);
     });
 
     return {

@@ -7,7 +7,7 @@ export interface AlertDocument extends Document {
   alertName: string;
   alertType: "upper" | "lower";
   threshold: number;
-  frequency: "once" | "daily" | "hourly" | "minute";
+  frequency: "once" | "daily" | "hourly";
   isActive: boolean;
   lastTriggeredAt?: Date; // Track when alert was last triggered for frequency control
   createdAt: Date;
@@ -46,7 +46,7 @@ const AlertSchema = new Schema<AlertDocument>(
     },
     frequency: {
       type: String,
-      enum: ["once", "daily", "hourly", "minute"],
+      enum: ["once", "daily", "hourly"],
       default: "daily",
     },
     isActive: {

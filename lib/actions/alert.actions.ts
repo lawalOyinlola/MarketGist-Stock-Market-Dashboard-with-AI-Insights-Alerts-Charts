@@ -49,7 +49,7 @@ export async function createAlert(
   alertName: string,
   alertType: "upper" | "lower",
   threshold: number,
-  frequency: "once" | "daily" | "hourly" | "minute" = "daily"
+  frequency: "once" | "daily" | "hourly" = "daily"
 ): Promise<{ success: boolean; error?: string; alertId?: string }> {
   try {
     // Input validation
@@ -72,13 +72,10 @@ export async function createAlert(
       return { success: false, error: "Alert type must be 'upper' or 'lower'" };
     }
 
-    if (
-      frequency &&
-      !["once", "daily", "hourly", "minute"].includes(frequency)
-    ) {
+    if (frequency && !["once", "daily", "hourly"].includes(frequency)) {
       return {
         success: false,
-        error: "Frequency must be 'once', 'daily', 'hourly', or 'minute'",
+        error: "Frequency must be 'once', 'daily', or 'hourly'",
       };
     }
 
@@ -241,10 +238,10 @@ export async function updateAlert(
     }
 
     if (updates.frequency !== undefined) {
-      if (!["once", "daily", "hourly", "minute"].includes(updates.frequency)) {
+      if (!["once", "daily", "hourly"].includes(updates.frequency)) {
         return {
           success: false,
-          error: "Frequency must be 'once', 'daily', 'hourly', or 'minute'",
+          error: "Frequency must be 'once', 'daily', or 'hourly'",
         };
       }
       allowedFields.frequency = updates.frequency;

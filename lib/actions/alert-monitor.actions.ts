@@ -47,198 +47,205 @@ export async function checkAlertsAndTrigger(): Promise<{
       symbolsMap.get(symbol)!.push(alert);
     }
 
-    // Check each unique symbol
-    for (const [symbol, symbolAlerts] of symbolsMap) {
-      try {
-        // Get current price for this symbol
-        const quote = await getQuote(symbol);
-        if (
-          !quote ||
-          typeof quote.c !== "number" ||
-          !Number.isFinite(quote.c)
-        ) {
-          errors.push(`No price data available for ${symbol}`);
-          continue;
-        }
+    // Process symbols in batches to prevent overwhelming API/database
+    const batchSize = 10;
+    const symbolsArray = Array.from(symbolsMap.entries());
 
-        const currentPrice = quote.c;
+    for (let i = 0; i < symbolsArray.length; i += batchSize) {
+      const batch = symbolsArray.slice(i, i + batchSize);
 
-        // Check each alert for this symbol
-        for (const alert of symbolAlerts) {
-          const shouldTrigger =
-            alert.alertType === "upper"
-              ? currentPrice >= alert.threshold
-              : currentPrice <= alert.threshold;
+      // Process batch concurrently
+      await Promise.all(
+        batch.map(async ([symbol, symbolAlerts]) => {
+          try {
+            // Get current price for this symbol
+            const quote = await getQuote(symbol);
+            if (
+              !quote ||
+              typeof quote.c !== "number" ||
+              !Number.isFinite(quote.c)
+            ) {
+              errors.push(`No price data available for ${symbol}`);
+              return;
+            }
 
-          if (shouldTrigger) {
-            // Use atomic database operation to check and update frequency constraints
-            // This prevents race conditions by making DB the single source of truth
-            const now = new Date();
-            const lastTriggered = alert.lastTriggeredAt
-              ? new Date(alert.lastTriggeredAt)
-              : null;
-            let updateResult: any;
+            const currentPrice = quote.c;
 
-            if (alert.frequency === "once") {
-              // Atomically check isActive and deactivate
-              updateResult = await Alert.updateOne(
-                { _id: alert._id, isActive: true },
-                { $set: { isActive: false, lastTriggeredAt: now } }
-              );
-            } else {
-              // Pre-check time window before attempting update
-              if (lastTriggered) {
-                const timeSinceLastTrigger =
-                  now.getTime() - lastTriggered.getTime();
-                let minTimeWindow = 0;
+            // Check each alert for this symbol
+            for (const alert of symbolAlerts) {
+              const shouldTrigger =
+                alert.alertType === "upper"
+                  ? currentPrice >= alert.threshold
+                  : currentPrice <= alert.threshold;
 
-                switch (alert.frequency) {
-                  case "minute":
-                    minTimeWindow = 60 * 1000;
-                    break;
-                  case "hourly":
-                    minTimeWindow = 60 * 60 * 1000;
-                    break;
-                  case "daily":
-                    minTimeWindow = 24 * 60 * 60 * 1000;
-                    break;
+              if (shouldTrigger) {
+                // Use atomic database operation to check and update frequency constraints
+                // This prevents race conditions by making DB the single source of truth
+                const now = new Date();
+                const lastTriggered = alert.lastTriggeredAt
+                  ? new Date(alert.lastTriggeredAt)
+                  : null;
+                let updateResult: any;
+
+                if (alert.frequency === "once") {
+                  // Atomically check isActive and deactivate
+                  updateResult = await Alert.updateOne(
+                    { _id: alert._id, isActive: true },
+                    { $set: { isActive: false, lastTriggeredAt: now } }
+                  );
+                } else {
+                  // Pre-check time window before attempting update
+                  if (lastTriggered) {
+                    const timeSinceLastTrigger =
+                      now.getTime() - lastTriggered.getTime();
+                    let minTimeWindow = 0;
+
+                    switch (alert.frequency) {
+                      case "hourly":
+                        minTimeWindow = 60 * 60 * 1000;
+                        break;
+                      case "daily":
+                        minTimeWindow = 24 * 60 * 60 * 1000;
+                        break;
+                    }
+
+                    if (timeSinceLastTrigger < minTimeWindow) {
+                      console.log(
+                        `Alert ${
+                          alert.alertName || alert._id
+                        } (${symbol}) skipping due to frequency constraint (${
+                          alert.frequency
+                        })`
+                      );
+                      continue;
+                    }
+                  }
+
+                  // Atomically update with optimistic concurrency control
+                  updateResult = await Alert.updateOne(
+                    {
+                      _id: alert._id,
+                      $or: [
+                        { lastTriggeredAt: { $exists: false } },
+                        { lastTriggeredAt: lastTriggered },
+                      ],
+                    },
+                    { $set: { lastTriggeredAt: now } }
+                  );
                 }
 
-                if (timeSinceLastTrigger < minTimeWindow) {
+                // Only proceed if DB update actually modified a document
+                if (updateResult.modifiedCount === 0) {
                   console.log(
                     `Alert ${
                       alert.alertName || alert._id
-                    } (${symbol}) skipping due to frequency constraint (${
-                      alert.frequency
-                    })`
+                    } (${symbol}) skipped - already triggered by another process`
                   );
                   continue;
                 }
+
+                console.log(
+                  `Alert triggered: ${symbol} - ${alert.alertType} threshold ${alert.threshold}, current: ${currentPrice}, frequency: ${alert.frequency}`
+                );
+
+                // Get user email
+                const user = await db
+                  .collection("user")
+                  .findOne<{ _id?: unknown; id?: string; email?: string }>({
+                    email: { $exists: true },
+                  });
+
+                if (!user?.email) {
+                  errors.push(`No email found for user ${alert.userId}`);
+                  continue;
+                }
+
+                // Get company name (could be from a profile lookup, but let's use the alert's company field)
+                const company = alert.company || symbol;
+
+                const targetPrice = alert.threshold;
+                const timestamp = new Date();
+                const timestampISO = timestamp.toISOString();
+
+                // Generate deterministic ID for idempotency within a per-minute window
+                // This prevents duplicate alert sends on retries while allowing new alerts each minute
+                const eventId = `${alert._id}:${Math.floor(
+                  timestamp.getTime() / 60000
+                )}`;
+
+                // Trigger the appropriate Inngest event
+                if (alert.alertType === "upper") {
+                  await inngest.send({
+                    id: eventId,
+                    name: "app/stock.alert.upper",
+                    data: {
+                      id: eventId,
+                      email: user.email,
+                      symbol,
+                      company,
+                      currentPrice,
+                      targetPrice,
+                      timestamp: timestampISO,
+                    },
+                  });
+                } else {
+                  await inngest.send({
+                    id: eventId,
+                    name: "app/stock.alert.lower",
+                    data: {
+                      id: eventId,
+                      email: user.email,
+                      symbol,
+                      company,
+                      currentPrice,
+                      targetPrice,
+                      timestamp: timestampISO,
+                    },
+                  });
+                }
+
+                triggered.push({
+                  alertId: (alert._id as any).toString(),
+                  userId: alert.userId,
+                  symbol,
+                  company,
+                  alertType: alert.alertType,
+                  threshold: alert.threshold,
+                  currentPrice,
+                });
+
+                // Create a notification for the user
+                try {
+                  await Notification.create({
+                    userId: alert.userId,
+                    type: "price_alert",
+                    title: `Price Alert: ${symbol} ${
+                      alert.alertType === "upper" ? "▲" : "▼"
+                    }`,
+                    message: `${company} (${symbol}) hit your ${
+                      alert.alertType === "upper" ? "upper" : "lower"
+                    } target of $${targetPrice}. Current price: $${currentPrice.toFixed(
+                      2
+                    )}.`,
+                    symbol,
+                    isRead: false,
+                  });
+                } catch (notifError) {
+                  console.error("Failed to create notification:", notifError);
+                }
+
+                // DB update already happened above - DB is the single source of truth
               }
-
-              // Atomically update with optimistic concurrency control
-              updateResult = await Alert.updateOne(
-                {
-                  _id: alert._id,
-                  $or: [
-                    { lastTriggeredAt: { $exists: false } },
-                    { lastTriggeredAt: lastTriggered },
-                  ],
-                },
-                { $set: { lastTriggeredAt: now } }
-              );
             }
-
-            // Only proceed if DB update actually modified a document
-            if (updateResult.modifiedCount === 0) {
-              console.log(
-                `Alert ${
-                  alert.alertName || alert._id
-                } (${symbol}) skipped - already triggered by another process`
-              );
-              continue;
-            }
-
-            console.log(
-              `Alert triggered: ${symbol} - ${alert.alertType} threshold ${alert.threshold}, current: ${currentPrice}, frequency: ${alert.frequency}`
+          } catch (error) {
+            errors.push(
+              `Failed to process alerts for ${symbol}: ${
+                error instanceof Error ? error.message : "Unknown error"
+              }`
             );
-
-            // Get user email
-            const user = await db
-              .collection("user")
-              .findOne<{ _id?: unknown; id?: string; email?: string }>({
-                email: { $exists: true },
-              });
-
-            if (!user?.email) {
-              errors.push(`No email found for user ${alert.userId}`);
-              continue;
-            }
-
-            // Get company name (could be from a profile lookup, but let's use the alert's company field)
-            const company = alert.company || symbol;
-
-            const targetPrice = alert.threshold;
-            const timestamp = new Date();
-            const timestampISO = timestamp.toISOString();
-
-            // Generate deterministic ID for idempotency within a per-minute window
-            // This prevents duplicate alert sends on retries while allowing new alerts each minute
-            const eventId = `${alert._id}:${Math.floor(
-              timestamp.getTime() / 60000
-            )}`;
-
-            // Trigger the appropriate Inngest event
-            if (alert.alertType === "upper") {
-              await inngest.send({
-                id: eventId,
-                name: "app/stock.alert.upper",
-                data: {
-                  id: eventId,
-                  email: user.email,
-                  symbol,
-                  company,
-                  currentPrice,
-                  targetPrice,
-                  timestamp: timestampISO,
-                },
-              });
-            } else {
-              await inngest.send({
-                id: eventId,
-                name: "app/stock.alert.lower",
-                data: {
-                  id: eventId,
-                  email: user.email,
-                  symbol,
-                  company,
-                  currentPrice,
-                  targetPrice,
-                  timestamp: timestampISO,
-                },
-              });
-            }
-
-            triggered.push({
-              alertId: (alert._id as any).toString(),
-              userId: alert.userId,
-              symbol,
-              company,
-              alertType: alert.alertType,
-              threshold: alert.threshold,
-              currentPrice,
-            });
-
-            // Create a notification for the user
-            try {
-              await Notification.create({
-                userId: alert.userId,
-                type: "price_alert",
-                title: `Price Alert: ${symbol} ${
-                  alert.alertType === "upper" ? "▲" : "▼"
-                }`,
-                message: `${company} (${symbol}) hit your ${
-                  alert.alertType === "upper" ? "upper" : "lower"
-                } target of $${targetPrice}. Current price: $${currentPrice.toFixed(
-                  2
-                )}.`,
-                symbol,
-                isRead: false,
-              });
-            } catch (notifError) {
-              console.error("Failed to create notification:", notifError);
-            }
-
-            // DB update already happened above - DB is the single source of truth
           }
-        }
-      } catch (error) {
-        errors.push(
-          `Failed to process alerts for ${symbol}: ${
-            error instanceof Error ? error.message : "Unknown error"
-          }`
-        );
-      }
+        })
+      );
     }
 
     console.log(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/forms/InputField";
@@ -8,9 +8,44 @@ import FooterLink from "@/components/forms/FooterLink";
 import { requestPasswordReset } from "@/lib/actions/auth.actions";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { SlidingNumber } from "@/components/ui/sliding-number";
 
 const ForgotPassword = () => {
   const [success, setSuccess] = useState(false);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [now, setNow] = useState<number>(() => Date.now());
+
+  const remainingMs = useMemo(() => {
+    if (!cooldownUntil) return 0;
+    return Math.max(0, cooldownUntil - now);
+  }, [cooldownUntil, now]);
+
+  const remainingSeconds = Math.ceil(remainingMs / 1000);
+
+  useEffect(() => {
+    const stored =
+      typeof window !== "undefined"
+        ? localStorage.getItem("forgot_pwd_cooldown_until")
+        : null;
+    if (stored) {
+      const ts = parseInt(stored, 10);
+      if (!Number.isNaN(ts) && ts > Date.now()) {
+        setCooldownUntil(ts);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!cooldownUntil) return;
+    const tick = setInterval(() => setNow(Date.now()), 250);
+    if (remainingMs <= 0) {
+      clearInterval(tick);
+      setCooldownUntil(null);
+      if (typeof window !== "undefined")
+        localStorage.removeItem("forgot_pwd_cooldown_until");
+    }
+    return () => clearInterval(tick);
+  }, [cooldownUntil, remainingMs]);
 
   const {
     register,
@@ -32,6 +67,10 @@ const ForgotPassword = () => {
         toast.success("Reset link sent!", {
           description: "Check your email for password reset instructions.",
         });
+        const until = Date.now() + 3 * 60 * 1000;
+        setCooldownUntil(until);
+        if (typeof window !== "undefined")
+          localStorage.setItem("forgot_pwd_cooldown_until", String(until));
       } else {
         toast.error("Failed to send reset link", {
           description: result.error ?? "Please try again.",
@@ -88,11 +127,28 @@ const ForgotPassword = () => {
 
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || remainingSeconds > 0}
             className="auth-btn mt-5"
           >
             {isSubmitting && <Spinner />}
-            {isSubmitting ? "Sending..." : "Send Reset Link"}
+            {remainingSeconds > 0 ? (
+              <span className="flex items-center gap-2">
+                Retry in
+                <span className="inline-flex items-center gap-1">
+                  <SlidingNumber
+                    value={Math.floor(remainingSeconds / 60)}
+                    padStart
+                  />
+                  <span>:</span>
+                  <SlidingNumber value={remainingSeconds % 60} padStart />
+                </span>
+                min
+              </span>
+            ) : isSubmitting ? (
+              "Sending..."
+            ) : (
+              "Send Reset Link"
+            )}
           </Button>
 
           <FooterLink

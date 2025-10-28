@@ -17,6 +17,7 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 const SignIn = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const {
     register,
@@ -36,6 +37,7 @@ const SignIn = () => {
 
       if (result.success) {
         toast.success("Sign in successful!", { description: "Redirecting..." });
+        setIsRedirecting(true);
         return router.push("/");
       }
       toast.error("Sign in failed!", {
@@ -95,9 +97,13 @@ const SignIn = () => {
           </InputGroupAddon>
         </InputGroupField>
 
-        <Button type="submit" disabled={isSubmitting} className="auth-btn mt-5">
+        <Button
+          type="submit"
+          disabled={isSubmitting || isRedirecting}
+          className="auth-btn mt-5"
+        >
           {isSubmitting && <Spinner />}
-          {isSubmitting ? "Signing In" : "Sign In"}
+          {isSubmitting || isRedirecting ? "Signing In" : "Sign In"}
         </Button>
 
         <div className="flex justify-end mt-2">

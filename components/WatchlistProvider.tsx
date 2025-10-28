@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
   useEffect,
+  useRef,
 } from "react";
 import { toast } from "sonner";
 import {
@@ -45,6 +46,7 @@ export function WatchlistProvider({
   const [watchlistData, setWatchlistData] =
     useState<StockWithData[]>(initialWatchlistData);
   const [isLoading, setIsLoading] = useState(false);
+  const didAutoRefetchRef = useRef<boolean>(false);
 
   const isInWatchlist = useCallback(
     (symbol: string) => symbolsState.has(symbol.toUpperCase().trim()),
@@ -139,6 +141,15 @@ export function WatchlistProvider({
       refreshWatchlist,
     ]
   );
+
+  // Auto-refresh on mount to fetch latest watchlist data client-side
+  useEffect(() => {
+    if (didAutoRefetchRef.current) return;
+    if (!email) return;
+    didAutoRefetchRef.current = true;
+    // Fire and forget; internal loading state handles UX
+    refreshWatchlist();
+  }, [email, refreshWatchlist]);
 
   return (
     <WatchlistContext.Provider value={value}>
