@@ -297,9 +297,7 @@ const AlertsPanel = ({ watchlist }: { watchlist: StockWithData[] }) => {
                             ? "Once"
                             : alert.frequency === "daily"
                             ? "Once per day"
-                            : alert.frequency === "hourly"
-                            ? "Once per hour"
-                            : "Once per minute"}
+                            : "Once per hour"}
                         </div>
                       </div>
                     </div>

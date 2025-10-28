@@ -27,6 +27,7 @@ export function NotificationPoller() {
   const isTabActiveRef = useRef<boolean>(true);
   const seenNotificationsRef = useRef<Set<string>>(new Set());
   const inFlightRef = useRef<boolean>(false); // Prevent overlapping polls
+  const skipFirstRunRef = useRef<boolean>(true); // Do not toast on initial load
 
   const checkForNewNotifications = useCallback(async () => {
     // Prevent overlapping polls
@@ -56,24 +57,33 @@ export function NotificationPoller() {
 
       const data: NotificationResponse = await response.json();
 
-      // Show toast for each new notification (deduplicate by ID)
-      for (const notification of data.notifications) {
-        if (
-          notification.type === "price_alert" &&
-          !seenNotificationsRef.current.has(notification._id)
-        ) {
-          seenNotificationsRef.current.add(notification._id);
+      // On first run, baseline existing unread notifications without toasting
+      if (skipFirstRunRef.current) {
+        for (const n of data.notifications) {
+          seenNotificationsRef.current.add(n._id);
+        }
+        skipFirstRunRef.current = false;
+      } else {
+        // Show toast for each new notification (deduplicate by ID)
+        for (const notification of data.notifications) {
+          if (
+            notification.type === "price_alert" &&
+            !seenNotificationsRef.current.has(notification._id)
+          ) {
+            seenNotificationsRef.current.add(notification._id);
 
-          toast.success(notification.title, {
-            description: notification.message,
-            duration: 5000,
-            action: notification.symbol
-              ? {
-                  label: "View",
-                  onClick: () => router.push(`/stocks/${notification.symbol}`),
-                }
-              : undefined,
-          });
+            toast.success(notification.title, {
+              description: notification.message,
+              duration: 5000,
+              action: notification.symbol
+                ? {
+                    label: "View",
+                    onClick: () =>
+                      router.push(`/stocks/${notification.symbol}`),
+                  }
+                : undefined,
+            });
+          }
         }
       }
 

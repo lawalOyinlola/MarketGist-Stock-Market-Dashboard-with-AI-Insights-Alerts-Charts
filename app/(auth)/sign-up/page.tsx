@@ -23,6 +23,7 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 const SignUp = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const {
     register,
@@ -50,7 +51,7 @@ const SignUp = () => {
         toast.success("Sign up successful", {
           description: "Welcome aboard! Redirecting...",
         });
-
+        setIsRedirecting(true);
         return router.push("/");
       }
       toast.error("Sign up failed", {
@@ -174,11 +175,13 @@ const SignUp = () => {
 
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isRedirecting}
           className="auth-btn w-full mt-5"
         >
           {isSubmitting && <Spinner />}
-          {isSubmitting ? "Creating Account" : "Start Your Investing Journey"}
+          {isSubmitting || isRedirecting
+            ? "Creating Account"
+            : "Start Your Investing Journey"}
         </Button>
 
         <FooterLink

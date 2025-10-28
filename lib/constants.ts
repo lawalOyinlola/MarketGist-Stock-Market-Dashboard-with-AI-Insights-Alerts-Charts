@@ -358,5 +358,4 @@ export const FREQUENCY_OPTIONS = [
   { value: "once", label: "Once" },
   { value: "daily", label: "Once per day" },
   { value: "hourly", label: "Once per hour" },
-  { value: "minute", label: "Once per minute" },
 ];

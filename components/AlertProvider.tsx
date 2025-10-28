@@ -24,7 +24,7 @@ type AlertContextValue = {
     alertName: string,
     alertType: "upper" | "lower",
     threshold: number,
-    frequency?: "once" | "daily" | "hourly" | "minute"
+    frequency?: "once" | "daily" | "hourly"
   ) => Promise<boolean>;
   remove: (alertId: string) => Promise<boolean>;
   update: (
@@ -33,7 +33,7 @@ type AlertContextValue = {
       alertName?: string;
       alertType?: "upper" | "lower";
       threshold?: number;
-      frequency?: "once" | "daily" | "hourly" | "minute";
+      frequency?: "once" | "daily" | "hourly";
     }
   ) => Promise<boolean>;
 };
@@ -78,7 +78,7 @@ export function AlertProvider({
       alertName: string,
       alertType: "upper" | "lower",
       threshold: number,
-      frequency: "once" | "daily" | "hourly" | "minute" = "daily"
+      frequency: "once" | "daily" | "hourly" = "daily"
     ) => {
       try {
         const result = await createAlert(
@@ -161,7 +161,7 @@ export function AlertProvider({
         alertName?: string;
         alertType?: "upper" | "lower";
         threshold?: number;
-        frequency?: "once" | "daily" | "hourly" | "minute";
+        frequency?: "once" | "daily" | "hourly";
       }
     ) => {
       try {

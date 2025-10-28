@@ -7,7 +7,7 @@ import { AlertProvider } from "@/components/AlertProvider";
 import { NotificationPoller } from "@/components/NotificationPoller";
 import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 import { getAlertsByEmail } from "@/lib/actions/alert.actions";
-import { getWatchlistWithData } from "@/lib/actions/finnhub.actions";
+// Defer heavy Finnhub fetches to the client to avoid blocking SSR
 
 const Layout = async ({ children }: { children: React.ReactNode }) => {
   const auth = await getAuth();
@@ -21,21 +21,19 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
     email: session.user.email,
   };
 
-  // Preload user's watchlist and alerts to hydrate client store
-  const [initialWatchlistSymbols, initialAlerts, initialWatchlistData] = session
-    .user.email
+  // Preload only lightweight data (symbols, alerts). Defer Finnhub data to client.
+  const [initialWatchlistSymbols, initialAlerts] = session.user.email
     ? await Promise.all([
         getWatchlistSymbolsByEmail(session.user.email),
         getAlertsByEmail(session.user.email),
-        getWatchlistWithData(session.user.email),
       ])
-    : ([[], [], []] as [string[], AlertData[], StockWithData[]]);
+    : ([[], []] as [string[], AlertData[]]);
 
   return (
     <main className="min-h-screen text-gray-400">
       <WatchlistProvider
         initialSymbols={initialWatchlistSymbols}
-        initialWatchlistData={initialWatchlistData}
+        initialWatchlistData={[]}
         email={session.user.email}
       >
         <AlertProvider initialAlerts={initialAlerts}>

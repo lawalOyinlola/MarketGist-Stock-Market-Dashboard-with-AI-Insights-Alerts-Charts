@@ -14,7 +14,7 @@ A comprehensive stock market tracker with AI integration, real-time charts, pers
 
 - **Real-time Stock Tracking**: Monitor live stock prices with TradingView integration
 - **Personalized Watchlist**: Add/remove stocks and track them in real-time
-- **Intelligent Price Alerts**: Set custom alerts with multiple frequency options (once, minute, hourly, daily)
+- **Intelligent Price Alerts**: Set custom alerts with frequency options (once, hourly, daily)
 - **Volume Spike Detection**: Get notified when unusual trading activity occurs
 - **Market Heatmaps**: Visual representation of market performance
 - **Company Profiles**: Detailed financial information and analysis
@@ -101,7 +101,7 @@ stocks/
 
 2. **Stock Monitoring Flow**
 
-   - Background cron job (every 2 minutes) checks all active alerts
+   - Background cron job (every hour) checks all active alerts
    - Fetches current prices from Finnhub API
    - Compares with alert thresholds
    - Atomically updates lastTriggeredAt to prevent race conditions
@@ -263,7 +263,7 @@ Complete the password reset flow using the secure token sent to your email.
 
 ### Alert Monitoring
 
-- **Frequency**: Every 2 minutes
+- **Frequency**: Every hour
 - **Function**: `monitorStockAlerts`
 - **Tasks**:
   - Check all active alerts

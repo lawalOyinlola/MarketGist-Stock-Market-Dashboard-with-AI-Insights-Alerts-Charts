@@ -64,7 +64,7 @@ const AlertModal = ({
     alertName: string;
     alertType: "upper" | "lower";
     threshold: string;
-    frequency: "once" | "daily" | "hourly" | "minute";
+    frequency: "once" | "daily" | "hourly";
   }>({
     defaultValues: {
       alertName: "",
@@ -86,7 +86,7 @@ const AlertModal = ({
     alertName: string;
     alertType: "upper" | "lower";
     threshold: string;
-    frequency: "once" | "daily" | "hourly" | "minute";
+    frequency: "once" | "daily" | "hourly";
   }>({
     defaultValues: {
       alertName: "",
@@ -214,7 +214,7 @@ const AlertModal = ({
     }
   });
 
-  const startEditing = (alert: any) => {
+  const startEditing = (alert: AlertData) => {
     setEditingAlertId(alert.id);
     // Reset form with alert data
     resetEdit({
@@ -264,8 +264,8 @@ const AlertModal = ({
 
               {(isEditMode && alertToEdit
                 ? [alertToEdit]
-                : existingAlerts.slice().reverse().slice(0, 2)
-              ).map((alert: any) => (
+                : existingAlerts.slice(-2).reverse()
+              ).map((alert: AlertData) => (
                 <div key={alert.id} className="p-3 border rounded-lg">
                   {editingAlertId === alert.id ? (
                     <form onSubmit={handleEditAlert} className="space-y-4">
@@ -371,9 +371,7 @@ const AlertModal = ({
                             ? "Once"
                             : alert.frequency === "daily"
                             ? "Once per day"
-                            : alert.frequency === "hourly"
-                            ? "Once per hour"
-                            : "Once per minute"}
+                            : "Once per hour"}
                         </ItemFooter>
                       </ItemContent>
                       <ItemActions className="gap-2 *:!p-1">

@@ -13,6 +13,7 @@ import { apiRateLimiter } from "@/lib/utils/rateLimiter";
 
 const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
+const FINNHUB_DISABLE = process.env.FINNHUB_DISABLE === "true";
 
 async function fetchJSON<T>(
   url: string,
@@ -115,6 +116,10 @@ export { fetchJSON };
 // Get current quote (price) for a symbol
 export async function getQuote(symbol: string): Promise<QuoteData | null> {
   try {
+    if (FINNHUB_DISABLE) {
+      console.debug("Finnhub API disabled, returning null");
+      return null;
+    }
     const token = FINNHUB_API_KEY;
     if (!token) {
       console.error("FINNHUB API key is not configured");
@@ -136,6 +141,10 @@ export async function getNews(
   symbols?: string[]
 ): Promise<MarketNewsArticle[]> {
   try {
+    if (FINNHUB_DISABLE) {
+      console.debug("Finnhub API disabled, returning null");
+      return [];
+    }
     const range = getDateRange(5);
     const token = FINNHUB_API_KEY;
     if (!token) {
@@ -225,6 +234,10 @@ export async function getNews(
 // User-agnostic stock search (cached for performance)
 export const searchStocks = cache(async (query?: string): Promise<Stock[]> => {
   try {
+    if (FINNHUB_DISABLE) {
+      console.debug("Finnhub API disabled, returning null");
+      return [];
+    }
     const token = FINNHUB_API_KEY;
     if (!token) {
       console.error(
@@ -332,6 +345,10 @@ export const searchStocks = cache(async (query?: string): Promise<Stock[]> => {
 const getWatchlistWithDataCached = cache(
   async (email: string): Promise<StockWithData[]> => {
     try {
+      if (FINNHUB_DISABLE) {
+        console.debug("Finnhub API disabled, returning null");
+        return [];
+      }
       const token = FINNHUB_API_KEY;
       if (!token) {
         console.error("FINNHUB API key is not configured");
