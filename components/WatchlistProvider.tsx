@@ -50,9 +50,6 @@ export function WatchlistProvider({
     initialSymbols.length > 0 && initialWatchlistData.length === 0;
   const [isLoading, setIsLoading] = useState(shouldShowInitialLoading);
   const didAutoRefetchRef = useRef<boolean>(false);
-  const hasCompletedInitialLoadRef = useRef<boolean>(
-    initialWatchlistData.length > 0 || initialSymbols.length === 0
-  );
 
   const isInWatchlist = useCallback(
     (symbol: string) => symbolsState.has(symbol.toUpperCase().trim()),
@@ -65,11 +62,9 @@ export function WatchlistProvider({
       // Use email if available, otherwise fall back to internal auth
       const data = await getWatchlistWithData(email);
       setWatchlistData(data);
-      hasCompletedInitialLoadRef.current = true;
     } catch (error) {
       console.error("Failed to refresh watchlist:", error);
       toast.error("Failed to refresh watchlist data");
-      hasCompletedInitialLoadRef.current = true;
     } finally {
       setIsLoading(false);
     }
@@ -154,8 +149,7 @@ export function WatchlistProvider({
   useEffect(() => {
     if (didAutoRefetchRef.current) return;
     if (!email) {
-      // If no email, mark as completed to avoid showing loading forever
-      hasCompletedInitialLoadRef.current = true;
+      // If no email, avoid showing loading forever
       setIsLoading(false);
       return;
     }

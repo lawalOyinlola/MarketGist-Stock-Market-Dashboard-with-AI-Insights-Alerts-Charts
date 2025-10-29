@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import {
   CommandDialog,
@@ -46,23 +46,29 @@ export default function SearchCommand({
   const defaultLabel = type === "alert" ? "Create Alert" : "Add stock";
   const displayLabel = label || defaultLabel;
 
-  // Update initial stocks with real watchlist status when component mounts
+  // Memoize initialStocks to create a stable reference
+  const memoizedInitialStocks = useMemo(
+    () => initialStocks,
+    [JSON.stringify(initialStocks)]
+  );
+
+  // Update initial stocks with real watchlist status when memoized initialStocks changes
   useEffect(() => {
-    if (initialStocks.length > 0) {
-      const updatedStocks = initialStocks.map((stock) => ({
+    if (memoizedInitialStocks.length > 0) {
+      const updatedStocks = memoizedInitialStocks.map((stock) => ({
         ...stock,
         isInWatchlist: checkWatchlist(stock.symbol),
       }));
       setStocks(updatedStocks);
     }
-  }, [initialStocks, checkWatchlist]);
+  }, [memoizedInitialStocks, checkWatchlist]);
 
   // Close dialog when navigating to a new page
   useEffect(() => {
     setOpen(false);
     setSearchTerm("");
-    setStocks(initialStocks);
-  }, [pathname, initialStocks]);
+    setStocks(memoizedInitialStocks);
+  }, [pathname]);
 
   const isSearchMode = !!searchTerm.trim();
   const displayStocks = isSearchMode ? stocks : stocks?.slice(0, 10);
@@ -80,7 +86,7 @@ export default function SearchCommand({
   }, []);
 
   const handleSearch = async () => {
-    if (!isSearchMode) return setStocks(initialStocks);
+    if (!isSearchMode) return setStocks(memoizedInitialStocks);
 
     setLoading(true);
 
@@ -144,7 +150,7 @@ export default function SearchCommand({
   const handleSelectStock = async (stock: StockWithWatchlistStatus) => {
     setOpen(false);
     setSearchTerm("");
-    setStocks(initialStocks);
+    setStocks(memoizedInitialStocks);
 
     // Close dropdown if navigating (type === "navigation")
     if (type === "navigation" && onNavigate) {
@@ -176,7 +182,7 @@ export default function SearchCommand({
     setOpen(open);
     if (!open) {
       setSearchTerm("");
-      setStocks(initialStocks);
+      setStocks(memoizedInitialStocks);
     }
   };
 
