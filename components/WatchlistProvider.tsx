@@ -45,8 +45,14 @@ export function WatchlistProvider({
   );
   const [watchlistData, setWatchlistData] =
     useState<StockWithData[]>(initialWatchlistData);
-  const [isLoading, setIsLoading] = useState(false);
+  // If we have symbols but no initial data, we should show loading state
+  const shouldShowInitialLoading =
+    initialSymbols.length > 0 && initialWatchlistData.length === 0;
+  const [isLoading, setIsLoading] = useState(shouldShowInitialLoading);
   const didAutoRefetchRef = useRef<boolean>(false);
+  const hasCompletedInitialLoadRef = useRef<boolean>(
+    initialWatchlistData.length > 0 || initialSymbols.length === 0
+  );
 
   const isInWatchlist = useCallback(
     (symbol: string) => symbolsState.has(symbol.toUpperCase().trim()),
@@ -59,9 +65,11 @@ export function WatchlistProvider({
       // Use email if available, otherwise fall back to internal auth
       const data = await getWatchlistWithData(email);
       setWatchlistData(data);
+      hasCompletedInitialLoadRef.current = true;
     } catch (error) {
       console.error("Failed to refresh watchlist:", error);
       toast.error("Failed to refresh watchlist data");
+      hasCompletedInitialLoadRef.current = true;
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +153,12 @@ export function WatchlistProvider({
   // Auto-refresh on mount to fetch latest watchlist data client-side
   useEffect(() => {
     if (didAutoRefetchRef.current) return;
-    if (!email) return;
+    if (!email) {
+      // If no email, mark as completed to avoid showing loading forever
+      hasCompletedInitialLoadRef.current = true;
+      setIsLoading(false);
+      return;
+    }
     didAutoRefetchRef.current = true;
     // Fire and forget; internal loading state handles UX
     refreshWatchlist();

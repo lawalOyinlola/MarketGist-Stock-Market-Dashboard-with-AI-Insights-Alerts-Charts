@@ -23,35 +23,21 @@ import { Button } from "@/components/ui/button";
 import WatchlistButton from "@/components/WatchlistButton";
 import AlertButton from "@/components/AlertButton";
 import { StarOffIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function WatchlistTable() {
-  const { watchlistData, isInWatchlist } = useWatchlist();
+  const { watchlistData, isInWatchlist, isLoading } = useWatchlist();
 
   // Use the watchlist data from context
   const rows: StockWithData[] = watchlistData || [];
 
+  // Show loading state if we're loading
+  if (isLoading) {
+    return <WatchlistTableSkeleton />;
+  }
+
   if (rows.length === 0) {
-    return (
-      <>
-        <Empty className="border border-dashed">
-          <EmptyHeader>
-            <EmptyMedia variant="icon" className="bg-gray-700/70">
-              <StarOffIcon className={`star-icon`} />
-            </EmptyMedia>
-            <EmptyTitle>No Watchlist Yet</EmptyTitle>
-            <EmptyDescription>
-              Your watchlist is empty. Use the "add stock" button to add stocks
-              to your watchlist.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button variant="outline" asChild>
-              <Link href="/">Back to Home</Link>
-            </Button>
-          </EmptyContent>
-        </Empty>
-      </>
-    );
+    return <WatchlistTableEmpty />;
   }
 
   return (
@@ -134,3 +120,83 @@ export default function WatchlistTable() {
     </div>
   );
 }
+
+const WatchlistTableSkeleton = () => {
+  return (
+    <div className="overflow-hidden rounded-md border !bg-gray-800">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-gray-700 text-gray-400 hover:bg-gray-700">
+            {WATCHLIST_TABLE_HEADER.map((head) => (
+              <TableHead key={head} className="h-11 text-left">
+                {head}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <TableRow
+              key={index}
+              className="*:text-left *:border-border [&>:not(:last-child)]:border-r hover:bg-gray-700/40"
+            >
+              {/* Company */}
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <Skeleton className="h-5 w-32" />
+                </div>
+              </TableCell>
+              {/* Symbol */}
+              <TableCell>
+                <Skeleton className="h-5 w-16" />
+              </TableCell>
+              {/* Price */}
+              <TableCell>
+                <Skeleton className="h-5 w-20" />
+              </TableCell>
+              {/* Change */}
+              <TableCell>
+                <Skeleton className="h-5 w-16" />
+              </TableCell>
+              {/* Market Cap */}
+              <TableCell>
+                <Skeleton className="h-5 w-24" />
+              </TableCell>
+              {/* P/E Ratio */}
+              <TableCell>
+                <Skeleton className="h-5 w-16" />
+              </TableCell>
+              {/* Action */}
+              <TableCell>
+                <Skeleton className="h-9 w-24" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
+const WatchlistTableEmpty = () => {
+  return (
+    <Empty className="border border-dashed">
+      <EmptyHeader>
+        <EmptyMedia variant="icon" className="bg-gray-700/70">
+          <StarOffIcon className={`star-icon`} />
+        </EmptyMedia>
+        <EmptyTitle>No Watchlist Yet</EmptyTitle>
+        <EmptyDescription>
+          Your watchlist is empty. Use the "add stock" button to add stocks to
+          your watchlist.
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button variant="outline" asChild>
+          <Link href="/">Back to Home</Link>
+        </Button>
+      </EmptyContent>
+    </Empty>
+  );
+};

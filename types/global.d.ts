@@ -195,6 +195,7 @@ declare global {
     renderAs?: "button" | "text";
     label?: string | React.ReactNode;
     initialStocks: StockWithWatchlistStatus[];
+    onNavigate?: () => void;
   };
 
   type RawNewsArticle = {

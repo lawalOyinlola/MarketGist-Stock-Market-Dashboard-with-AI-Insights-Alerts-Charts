@@ -8,9 +8,11 @@ import { NAV_ITEMS } from "@/lib/constants";
 const NavItems = ({
   initialStocks,
   onItemClick,
+  onNavigate,
 }: {
   initialStocks: StockWithWatchlistStatus[];
   onItemClick?: () => void;
+  onNavigate?: () => void;
 }) => {
   const pathname = usePathname();
 
@@ -20,7 +22,7 @@ const NavItems = ({
     return pathname.startsWith(path);
   };
 
-  const handleItemClick = () => {
+  const handleLinkClick = () => {
     if (onItemClick) {
       onItemClick();
     }
@@ -31,17 +33,18 @@ const NavItems = ({
       {NAV_ITEMS.map(({ href, label }) => {
         if (href === "/search")
           return (
-            <li key="search-trigger" onClick={handleItemClick}>
+            <li key="search-trigger">
               <SearchCommand
                 renderAs="text"
                 label="Search"
                 initialStocks={initialStocks}
+                onNavigate={onNavigate}
               />
             </li>
           );
 
         return (
-          <li key={href} onClick={handleItemClick}>
+          <li key={href} onClick={handleLinkClick}>
             <Link
               href={href}
               className={`hover:text-app-color transition-colors ${

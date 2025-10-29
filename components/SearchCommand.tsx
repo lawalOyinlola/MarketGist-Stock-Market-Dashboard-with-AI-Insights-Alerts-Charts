@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import {
   CommandDialog,
   CommandInput,
@@ -24,7 +25,9 @@ export default function SearchCommand({
   renderAs = "button",
   label,
   initialStocks = [],
+  onNavigate,
 }: AlertSearchCommandProps) {
+  const pathname = usePathname();
   const [open, setOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [stocks, setStocks] =
@@ -53,6 +56,13 @@ export default function SearchCommand({
       setStocks(updatedStocks);
     }
   }, [initialStocks, checkWatchlist]);
+
+  // Close dialog when navigating to a new page
+  useEffect(() => {
+    setOpen(false);
+    setSearchTerm("");
+    setStocks(initialStocks);
+  }, [pathname, initialStocks]);
 
   const isSearchMode = !!searchTerm.trim();
   const displayStocks = isSearchMode ? stocks : stocks?.slice(0, 10);
@@ -136,6 +146,11 @@ export default function SearchCommand({
     setSearchTerm("");
     setStocks(initialStocks);
 
+    // Close dropdown if navigating (type === "navigation")
+    if (type === "navigation" && onNavigate) {
+      onNavigate();
+    }
+
     if (type === "alert") {
       toast.loading("Fetching stock price...", { id: "fetch-price" });
       const price = await fetchCurrentPrice(stock.symbol);
@@ -182,10 +197,21 @@ export default function SearchCommand({
         ? "Create Alert"
         : "Add stock";
 
+    const handleButtonClick = (e?: React.MouseEvent) => {
+      // Prevent event from bubbling up (which might close dialogs)
+      if (e) {
+        e.stopPropagation();
+      }
+
+      // Just open the search dialog - don't close dropdown
+      // Both dialogs can coexist, and navigation will close both
+      setOpen(true);
+    };
+
     if (renderAs === "text") {
       return (
         <button
-          onClick={() => setOpen(true)}
+          onClick={handleButtonClick}
           className="search-text"
           aria-label={ariaLabel}
         >
@@ -195,7 +221,7 @@ export default function SearchCommand({
     }
 
     return (
-      <Button onClick={() => setOpen(true)}>
+      <Button onClick={handleButtonClick}>
         {type === "alert" && (
           <BellIcon className="w-4 h-4 group-hover:fill-current transition-all duration-300" />
         )}
