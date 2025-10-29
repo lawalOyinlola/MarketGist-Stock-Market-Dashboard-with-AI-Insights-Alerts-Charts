@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +25,13 @@ const UserDropdown = ({
   initialStocks: StockWithWatchlistStatus[];
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  // Close dropdown when navigating to a new page
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   const handleSignOut: () => Promise<void> = async () => {
     const result = await signOut();
@@ -84,6 +90,7 @@ const UserDropdown = ({
           <NavItems
             initialStocks={initialStocks}
             onItemClick={() => setOpen(false)}
+            onNavigate={() => setOpen(false)}
           />
         </nav>
       </DropdownMenuContent>

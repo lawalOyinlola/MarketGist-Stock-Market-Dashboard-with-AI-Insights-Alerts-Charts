@@ -45,7 +45,10 @@ export function WatchlistProvider({
   );
   const [watchlistData, setWatchlistData] =
     useState<StockWithData[]>(initialWatchlistData);
-  const [isLoading, setIsLoading] = useState(false);
+  // If we have symbols but no initial data, we should show loading state
+  const shouldShowInitialLoading =
+    initialSymbols.length > 0 && initialWatchlistData.length === 0;
+  const [isLoading, setIsLoading] = useState(shouldShowInitialLoading);
   const didAutoRefetchRef = useRef<boolean>(false);
 
   const isInWatchlist = useCallback(
@@ -145,7 +148,11 @@ export function WatchlistProvider({
   // Auto-refresh on mount to fetch latest watchlist data client-side
   useEffect(() => {
     if (didAutoRefetchRef.current) return;
-    if (!email) return;
+    if (!email) {
+      // If no email, avoid showing loading forever
+      setIsLoading(false);
+      return;
+    }
     didAutoRefetchRef.current = true;
     // Fire and forget; internal loading state handles UX
     refreshWatchlist();
