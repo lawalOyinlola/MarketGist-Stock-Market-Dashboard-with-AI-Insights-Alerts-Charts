@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
-import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
+import { ChevronsUpDownIcon, LogOutIcon, UserRoundIcon } from "lucide-react";
 import NavItems from "./NavItems";
 import { signOut } from "@/lib/actions/auth.actions";
 import { toast } from "sonner";
@@ -104,13 +104,20 @@ const UserAvatar = ({
 }: {
   size?: string;
   user: User;
-}) => (
-  <Avatar className={size}>
-    <AvatarImage src="/assets/images/lawal_oyinlola-profile_picture.png" />
-    <AvatarFallback className="bg-yellow-500 text-yellow-900 text-sm font-bold">
-      {user?.name?.[0] || "U"}
-    </AvatarFallback>
-  </Avatar>
-);
+}) => {
+  const shouldShowImage = user?.name?.toLowerCase().includes("oyinlola");
+  const imageSrc = shouldShowImage
+    ? "/assets/images/lawal_oyinlola-profile_picture.png"
+    : "";
+
+  return (
+    <Avatar className={size}>
+      <AvatarImage src={imageSrc} />
+      <AvatarFallback className="bg-app-color text-gray-900 text-sm font-bold">
+        <UserRoundIcon className="size-5" />
+      </AvatarFallback>
+    </Avatar>
+  );
+};
 
 export default UserDropdown;
