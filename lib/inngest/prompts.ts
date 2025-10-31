@@ -91,14 +91,14 @@ Article Title Here
 BULLET POINTS (minimum 3 concise insights):
 Use this format with clear, concise explanations (no label needed):
 <ul style="margin: 16px 0 20px 0; padding-left: 0; margin-left: 0; list-style: none;">
-  <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC; list-style: none;">
-    <span style="color: #9ecf2e; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Clear, concise explanation in simple terms that's easy to understand quickly.
+  <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
+    Clear, concise explanation in simple terms that's easy to understand quickly.
   </li>
-  <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC; list-style: none;">
-    <span style="color: #9ecf2e; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Brief explanation with key numbers and what they mean in everyday language.
+  <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
+    Brief explanation with key numbers and what they mean in everyday language.
   </li>
-  <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC; list-style: none;">
-    <span style="color: #9ecf2e; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Simple takeaway about what this means for regular people's money.
+  <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
+    Simple takeaway about what this means for regular people's money.
   </li>
 </ul>
 
@@ -110,7 +110,7 @@ Add simple context explanation:
 
 READ MORE BUTTON:
 <div style="margin: 20px 0 0 0;">
-<a href="ARTICLE_URL" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px; display: inline-block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
+<a href="ARTICLE_URL" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px; display: block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
 </div>
 
 ARTICLE DIVIDER:
@@ -149,13 +149,13 @@ Stock Market Had Mixed Results Today
 
 <ul style="margin: 16px 0 20px 0; padding-left: 0; margin-left: 0; list-style: none;">
   <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-    <span style="color: #9ecf2e; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Tech stocks like Apple went up 1.2% today, which is good news for tech investors.
+    Tech stocks like Apple went up 1.2% today, which is good news for tech investors.
   </li>
   <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-    <span style="color: #9ecf2e; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Traditional companies went down 0.3%, showing investors prefer tech right now.
+    Traditional companies went down 0.3%, showing investors prefer tech right now.
   </li>
   <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-    <span style="color: #9ecf2e; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>High trading volume (12.4 billion shares) shows investors are confident and active.
+    High trading volume (12.4 billion shares) shows investors are confident and active.
   </li>
 </ul>
 
@@ -164,7 +164,7 @@ Stock Market Had Mixed Results Today
 </div>
 
 <div style="margin: 20px 0 0 0;">
-<a href="https://example.com/article1" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
+<a href="https://example.com/article1" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px; display: block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
 </div>
 </div>
 
@@ -179,13 +179,13 @@ Apple Stock Jumped After Great Earnings Report
 
 <ul style="margin: 16px 0 20px 0; padding-left: 0; margin-left: 0; list-style: none;">
   <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-    <span style="color: #9ecf2e; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Apple stock jumped 5.2% after beating earnings expectations.
+    Apple stock jumped 5.2% after beating earnings expectations.
   </li>
   <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-    <span style="color: #9ecf2e; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>iPhone sales expected to grow 8% next quarter despite economic uncertainty.
+    iPhone sales expected to grow 8% next quarter despite economic uncertainty.
   </li>
   <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-    <span style="color: #9ecf2e; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>App store and services revenue hit $22.3 billion (up 14%), providing steady income.
+    App store and services revenue hit $22.3 billion (up 14%), providing steady income.
   </li>
 </ul>
 
@@ -194,7 +194,7 @@ Apple Stock Jumped After Great Earnings Report
 </div>
 
 <div style="margin: 20px 0 0 0;">
-<a href="https://example.com/article2" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
+<a href="https://example.com/article2" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px display: block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
 </div>
 </div>`;
 
