@@ -194,7 +194,7 @@ Apple Stock Jumped After Great Earnings Report
 </div>
 
 <div style="margin: 20px 0 0 0;">
-<a href="https://example.com/article2" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px display: block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
+<a href="https://example.com/article2" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px; display: block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
 </div>
 </div>`;
 
