@@ -163,9 +163,15 @@ export async function checkAlertsAndTrigger(): Promise<{
                       id: alert.userId,
                     });
 
-                  if (!user) {
+                  let userEmail: string;
+
+                  if (user) {
+                    // Authenticated user - use their email
+                    userEmail = user.email || "";
+                  } else {
+                    // Check if it's a guest user (userId is email)
+                    // Try to look up by _id first
                     try {
-                      // Attempt lookup by ObjectId when alert.userId is a Mongo _id
                       const maybeObjectId = new (
                         mongoose as any
                       ).Types.ObjectId(alert.userId);
@@ -176,8 +182,15 @@ export async function checkAlertsAndTrigger(): Promise<{
                       }>({
                         _id: maybeObjectId,
                       });
+
+                      if (user) {
+                        userEmail = user.email || "";
+                      } else {
+                        // Assume it's a guest userId (email)
+                        userEmail = alert.userId;
+                      }
                     } catch (_) {
-                      // Non-ObjectId userId; fallback attempt by string equality on _id
+                      // Non-ObjectId userId; could be guest email or string _id
                       user = await db.collection("user").findOne<{
                         _id?: unknown;
                         id?: string;
@@ -185,10 +198,17 @@ export async function checkAlertsAndTrigger(): Promise<{
                       }>({
                         _id: alert.userId as any,
                       });
+
+                      if (user) {
+                        userEmail = user.email || "";
+                      } else {
+                        // Assume it's a guest userId (email)
+                        userEmail = alert.userId;
+                      }
                     }
                   }
 
-                  if (!user?.email) {
+                  if (!userEmail) {
                     errors.push(`No email found for user ${alert.userId}`);
                     continue;
                   }
@@ -213,7 +233,7 @@ export async function checkAlertsAndTrigger(): Promise<{
                       name: "app/stock.alert.upper",
                       data: {
                         id: eventId,
-                        email: user.email,
+                        email: userEmail,
                         symbol,
                         company,
                         currentPrice,
@@ -227,7 +247,7 @@ export async function checkAlertsAndTrigger(): Promise<{
                       name: "app/stock.alert.lower",
                       data: {
                         id: eventId,
-                        email: user.email,
+                        email: userEmail,
                         symbol,
                         company,
                         currentPrice,

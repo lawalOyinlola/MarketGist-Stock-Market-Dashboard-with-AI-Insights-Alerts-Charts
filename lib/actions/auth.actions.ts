@@ -3,6 +3,9 @@
 import { auth } from "@/lib/better-auth/auth";
 import { inngest } from "@/lib/inngest/client";
 import { headers } from "next/headers";
+import { connectToDatabase } from "@/database/mongoose";
+import { Watchlist } from "@/database/models/watchlist.model";
+import { Alert } from "@/database/models/alert.model";
 
 export const signUpWithEmail = async ({
   email,
@@ -45,6 +48,9 @@ export const signUpWithEmail = async ({
 
     if (response) {
       try {
+        // Migrate guest data to new user account
+        await migrateGuestData(email);
+
         await inngest.send({
           name: "app/user.created",
           data: {
@@ -83,6 +89,16 @@ export const signInWithEmail = async ({ email, password }: SignInFormData) => {
     }
 
     const response = await auth.api.signInEmail({ body: { email, password } });
+
+    if (response) {
+      try {
+        // Migrate guest data to authenticated user account
+        await migrateGuestData(email);
+      } catch (migrationError) {
+        console.error("Failed to migrate guest data:", migrationError);
+        // Don't fail sign-in if migration fails
+      }
+    }
 
     return { success: true, data: response };
   } catch (e) {
@@ -188,3 +204,54 @@ export const resetPasswordWithToken = async ({
     };
   }
 };
+
+/**
+ * Migrates guest user data (watchlist and alerts) to a new authenticated user account.
+ * Only migrates if guest data exists for the provided email.
+ * Called when user signs up or signs in with the same email used as a guest.
+ */
+async function migrateGuestData(email: string) {
+  try {
+    // Get the authenticated user's ID
+    const { getAuth } = await import("@/lib/better-auth/auth");
+    const auth = await getAuth();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session?.user) {
+      console.log("No authenticated user found, skipping migration");
+      return;
+    }
+
+    const newUserId = session.user.id;
+
+    await connectToDatabase();
+
+    // Check if guest data exists for this email before migrating
+    const watchlistCount = await Watchlist.countDocuments({ userId: email });
+    const alertsCount = await Alert.countDocuments({ userId: email });
+
+    if (watchlistCount === 0 && alertsCount === 0) {
+      console.log(`No guest data found for ${email}, skipping migration`);
+      return;
+    }
+
+    // Migrate watchlist items
+    const watchlistResult = await Watchlist.updateMany(
+      { userId: email }, // Find by guest email
+      { $set: { userId: newUserId } } // Update to new user ID
+    );
+
+    // Migrate alerts
+    const alertsResult = await Alert.updateMany(
+      { userId: email }, // Find by guest email
+      { $set: { userId: newUserId } } // Update to new user ID
+    );
+
+    console.log(
+      `Migrated ${watchlistResult.modifiedCount} watchlist items and ${alertsResult.modifiedCount} alerts for ${email}`
+    );
+  } catch (error) {
+    console.error("Error migrating guest data:", error);
+    // Don't throw error - migration failure shouldn't prevent signup
+  }
+}

@@ -10,9 +10,9 @@ import { InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
 import FooterLink from "@/components/forms/FooterLink";
 import { signInWithEmail } from "@/lib/actions/auth.actions";
 import { toast } from "sonner";
-// import { signInEmail } from "better-auth/api";
 import { Spinner } from "@/components/ui/spinner";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { guestStorage } from "@/lib/utils/guest-storage";
 
 const SignIn = () => {
   const router = useRouter();
@@ -36,6 +36,12 @@ const SignIn = () => {
       const result = await signInWithEmail(data);
 
       if (result.success) {
+        // Clear guest email from localStorage after successful sign-in
+        const guestEmail = guestStorage.getGuestEmail();
+        if (guestEmail && guestEmail === data.email) {
+          guestStorage.clearGuestEmail();
+        }
+
         toast.success("Sign in successful!", { description: "Redirecting..." });
         setIsRedirecting(true);
         return router.push("/");
@@ -121,6 +127,20 @@ const SignIn = () => {
           href="/sign-up"
         />
       </form>
+
+      <div className="mt-6 pt-6 border-t border-gray-700">
+        <p className="text-sm text-gray-500 text-center mb-4">
+          Want to explore without an account?
+        </p>
+        <Button
+          onClick={() => router.push("/?guest=true")}
+          variant="outline"
+          className="w-full"
+          size="lg"
+        >
+          Access Without Login
+        </Button>
+      </div>
     </>
   );
 };

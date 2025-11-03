@@ -3,7 +3,7 @@ import Image from "next/image";
 import HeaderNavWrapper from "./HeaderNavWrapper";
 import { searchStocks } from "@/lib/actions/finnhub.actions";
 
-const Header = async ({ user }: { user: User }) => {
+const Header = async ({ user }: { user: User | null }) => {
   const stocks = await searchStocks();
   const initialStocks: StockWithWatchlistStatus[] = stocks.map((stock) => ({
     ...stock,

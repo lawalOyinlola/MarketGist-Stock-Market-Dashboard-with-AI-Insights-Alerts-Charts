@@ -16,13 +16,18 @@ export async function getAlertsByEmail(email: string): Promise<AlertData[]> {
       .collection("user")
       .findOne<{ _id?: unknown; id?: string; email?: string }>({ email });
 
-    if (!user) return [];
-
-    const userId =
-      (user.id as string) ??
-      (user._id as { toHexString?: () => string })?.toHexString?.() ??
-      (user._id as { toString?: () => string })?.toString?.() ??
-      "";
+    // Determine userId: authenticated user ID or email for guest users
+    let userId: string;
+    if (user) {
+      userId =
+        (user.id as string) ??
+        (user._id as { toHexString?: () => string })?.toHexString?.() ??
+        (user._id as { toString?: () => string })?.toString?.() ??
+        "";
+    } else {
+      // Guest user - use email as userId
+      userId = email;
+    }
 
     if (!userId) return [];
 
@@ -49,7 +54,8 @@ export async function createAlert(
   alertName: string,
   alertType: "upper" | "lower",
   threshold: number,
-  frequency: "once" | "daily" | "hourly" = "daily"
+  frequency: "once" | "daily" | "hourly" = "daily",
+  guestEmail?: string
 ): Promise<{ success: boolean; error?: string; alertId?: string }> {
   try {
     // Input validation
@@ -105,11 +111,16 @@ export async function createAlert(
     const auth = await getAuth();
     const session = await auth.api.getSession({ headers: await headers() });
 
-    if (!session?.user) {
+    // Use authenticated user ID or fall back to guest email
+    let userId: string;
+    if (session?.user) {
+      userId = session.user.id;
+    } else if (guestEmail) {
+      // For guest users, use email as userId
+      userId = guestEmail;
+    } else {
       return { success: false, error: "User not authenticated" };
     }
-
-    const userId = session.user.id;
 
     // Check if similar alert already exists
     const existing = await Alert.findOne({

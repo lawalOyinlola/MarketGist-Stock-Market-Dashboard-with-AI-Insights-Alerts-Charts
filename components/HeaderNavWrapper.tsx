@@ -3,9 +3,11 @@
 import { useMemo } from "react";
 import NavItems from "./NavItems";
 import UserDropdown from "./UserDropdown";
+import Link from "next/link";
+import { Button } from "./ui/button";
 
 interface HeaderNavWrapperProps {
-  user: User;
+  user: User | null;
   initialStocks: StockWithWatchlistStatus[];
 }
 
@@ -24,7 +26,17 @@ export default function HeaderNavWrapper({
       <nav className="hidden sm:block">
         <NavItems initialStocks={memoizedInitialStocks} />
       </nav>
-      <UserDropdown user={user} initialStocks={memoizedInitialStocks} />
+      {user ? (
+        <UserDropdown user={user} initialStocks={memoizedInitialStocks} />
+      ) : (
+        <Button
+          variant="ghost"
+          className="text-gray-400 hover:text-app-color"
+          asChild
+        >
+          <Link href="/sign-in">Sign In</Link>
+        </Button>
+      )}
     </>
   );
 }
