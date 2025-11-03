@@ -49,8 +49,9 @@ export default function GuestEmailModal({
     setIsSubmitting(true);
     try {
       // Validate email
+      const normalizedEmail = data.email.trim().toLowerCase();
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(data.email)) {
+      if (!emailRegex.test(normalizedEmail)) {
         toast.error("Invalid email", {
           description: "Please enter a valid email address",
         });
@@ -59,13 +60,13 @@ export default function GuestEmailModal({
       }
 
       // Store email in localStorage
-      guestStorage.setGuestEmail(data.email);
+      guestStorage.setGuestEmail(normalizedEmail);
 
       // Dispatch custom event to notify other components
       window.dispatchEvent(new Event("guestEmailChanged"));
 
       // Call the callback
-      onEmailProvided(data.email);
+      onEmailProvided(normalizedEmail);
 
       // Close modal
       onOpenChange(false);

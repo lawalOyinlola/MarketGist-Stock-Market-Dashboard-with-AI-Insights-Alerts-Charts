@@ -34,13 +34,17 @@ export const getAllUsersForNewsEmail = async (): Promise<NewsUser[]> => {
     // Get unique guest emails from watchlist
     const guestWatchlistEmails = new Set<string>();
     const watchlistItems = await Watchlist.find({}, { userId: 1 }).lean();
+    const authenticatedEmailSet = new Set(
+      authenticatedUsers.map((user) => user.email.trim().toLowerCase())
+    );
+
     for (const item of watchlistItems) {
-      const userId = String(item.userId);
+      const userId = String(item.userId ?? "");
+      const normalizedUserId = userId.trim().toLowerCase();
       // If userId looks like an email and is not an authenticated user
-      if (userId.includes("@")) {
-        const isAuthEmail = authenticatedUsers.some((u) => u.email === userId);
-        if (!isAuthEmail) {
-          guestWatchlistEmails.add(userId);
+      if (normalizedUserId.includes("@")) {
+        if (!authenticatedEmailSet.has(normalizedUserId)) {
+          guestWatchlistEmails.add(normalizedUserId);
         }
       }
     }
@@ -49,12 +53,15 @@ export const getAllUsersForNewsEmail = async (): Promise<NewsUser[]> => {
     const guestAlertEmails = new Set<string>();
     const alerts = await Alert.find({}, { userId: 1 }).lean();
     for (const alert of alerts) {
-      const userId = String(alert.userId);
+      const userId = String(alert.userId ?? "");
+      const normalizedUserId = userId.trim().toLowerCase();
       // Check if it's likely an email (contains @)
-      if (userId.includes("@")) {
-        const isAuthEmail = authenticatedUsers.some((u) => u.email === userId);
-        if (!isAuthEmail && !guestWatchlistEmails.has(userId)) {
-          guestAlertEmails.add(userId);
+      if (normalizedUserId.includes("@")) {
+        if (
+          !authenticatedEmailSet.has(normalizedUserId) &&
+          !guestWatchlistEmails.has(normalizedUserId)
+        ) {
+          guestAlertEmails.add(normalizedUserId);
         }
       }
     }

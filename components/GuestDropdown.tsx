@@ -47,7 +47,7 @@ const GuestDropdown = ({
           className="flex items-center gap-3 text-gray-400 hover:text-app-color"
         >
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-app-color text-gray-900 text-sm font-bol">
+            <AvatarFallback className="bg-app-color text-gray-900 text-sm font-bold">
               <UserRoundIcon className="size-5" />
             </AvatarFallback>
           </Avatar>
