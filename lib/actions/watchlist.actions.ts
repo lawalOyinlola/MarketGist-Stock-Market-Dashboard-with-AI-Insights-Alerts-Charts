@@ -18,13 +18,18 @@ export async function getWatchlistSymbolsByEmail(
       .collection("user")
       .findOne<{ _id?: unknown; id?: string; email?: string }>({ email });
 
-    if (!user) return [];
-
-    const userId =
-      (user.id as string) ??
-      (user._id as { toHexString?: () => string })?.toHexString?.() ??
-      (user._id as { toString?: () => string })?.toString?.() ??
-      "";
+    // Determine userId: authenticated user ID or email for guest users
+    let userId: string;
+    if (user) {
+      userId =
+        (user.id as string) ??
+        (user._id as { toHexString?: () => string })?.toHexString?.() ??
+        (user._id as { toString?: () => string })?.toString?.() ??
+        "";
+    } else {
+      // Guest user - use email as userId
+      userId = email;
+    }
 
     if (!userId) return [];
 
@@ -36,11 +41,10 @@ export async function getWatchlistSymbolsByEmail(
   }
 }
 
-
-
 export async function addToWatchlist(
   symbol: string,
-  company: string
+  company: string,
+  guestEmail?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const mongoose = await connectToDatabase();
@@ -53,11 +57,16 @@ export async function addToWatchlist(
     const auth = await getAuth();
     const session = await auth.api.getSession({ headers: await headers() });
 
-    if (!session?.user) {
+    // Use authenticated user ID or fall back to guest email
+    let userId: string;
+    if (session?.user) {
+      userId = session.user.id;
+    } else if (guestEmail) {
+      // For guest users, use email as userId
+      userId = guestEmail;
+    } else {
       return { success: false, error: "User not authenticated" };
     }
-
-    const userId = session.user.id;
 
     // Check if already in watchlist
     const normalized = symbol.toUpperCase().trim();
@@ -90,8 +99,14 @@ export async function addToWatchlist(
 }
 
 export async function removeFromWatchlist(
-  symbol: string
+  symbol: string,
+  guestEmail?: string
 ): Promise<{ success: boolean; error?: string }> {
+  // Validate guest email format if provided
+  if (guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+    return { success: false, error: "Invalid email format" };
+  }
+
   try {
     const mongoose = await connectToDatabase();
     const db = mongoose.connection.db;
@@ -103,11 +118,16 @@ export async function removeFromWatchlist(
     const auth = await getAuth();
     const session = await auth.api.getSession({ headers: await headers() });
 
-    if (!session?.user) {
+    // Use authenticated user ID or fall back to guest email
+    let userId: string;
+    if (session?.user) {
+      userId = session.user.id;
+    } else if (guestEmail) {
+      // For guest users, use email as userId
+      userId = guestEmail;
+    } else {
       return { success: false, error: "User not authenticated" };
     }
-
-    const userId = session.user.id;
 
     // Remove from watchlist
     const result = await Watchlist.deleteOne({

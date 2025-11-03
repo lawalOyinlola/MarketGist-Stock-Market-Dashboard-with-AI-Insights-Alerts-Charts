@@ -19,6 +19,7 @@ import FooterLink from "@/components/forms/FooterLink";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { guestStorage } from "@/lib/utils/guest-storage";
 
 const SignUp = () => {
   const router = useRouter();
@@ -48,6 +49,14 @@ const SignUp = () => {
       const result = await signUpWithEmail(data);
 
       if (result.success) {
+        // Clear guest email from localStorage after successful sign-up (migration handles data)
+        const guestEmail = guestStorage.getGuestEmail();
+        if (guestEmail && guestEmail === data.email) {
+          guestStorage.clearGuestEmail();
+          // Dispatch custom event to notify other components
+          window.dispatchEvent(new Event("guestEmailChanged"));
+        }
+
         toast.success("Sign up successful", {
           description: "Welcome aboard! Redirecting...",
         });

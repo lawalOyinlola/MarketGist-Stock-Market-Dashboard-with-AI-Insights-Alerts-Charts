@@ -10,7 +10,8 @@ export const getAllUsersForNewsEmail = async (): Promise<NewsUser[]> => {
     const db = mongoose.connection.db;
     if (!db) throw new Error("MongoDB connection not found");
 
-    const users = await db
+    // Get authenticated users
+    const authUsers = await db
       .collection("user")
       .find(
         { email: { $exists: true, $ne: null } },
@@ -18,13 +19,66 @@ export const getAllUsersForNewsEmail = async (): Promise<NewsUser[]> => {
       )
       .toArray();
 
-    return users
+    const authenticatedUsers = authUsers
       .filter((user) => user.email && user.name)
       .map((user) => ({
         id: user.id || user._id?.toString() || "",
         email: user.email,
         name: user.name,
       }));
+
+    // Get guest users from watchlist/alert collections (userId is email for guests)
+    const { Watchlist } = await import("@/database/models/watchlist.model");
+    const { Alert } = await import("@/database/models/alert.model");
+
+    // Get unique guest emails from watchlist
+    const guestWatchlistEmails = new Set<string>();
+    const watchlistItems = await Watchlist.find({}, { userId: 1 }).lean();
+    const authenticatedEmailSet = new Set(
+      authenticatedUsers.map((user) => user.email.trim().toLowerCase())
+    );
+
+    for (const item of watchlistItems) {
+      const userId = String(item.userId ?? "");
+      const normalizedUserId = userId.trim().toLowerCase();
+      // If userId looks like an email and is not an authenticated user
+      if (normalizedUserId.includes("@")) {
+        if (!authenticatedEmailSet.has(normalizedUserId)) {
+          guestWatchlistEmails.add(normalizedUserId);
+        }
+      }
+    }
+
+    // Get unique guest emails from alerts
+    const guestAlertEmails = new Set<string>();
+    const alerts = await Alert.find({}, { userId: 1 }).lean();
+    for (const alert of alerts) {
+      const userId = String(alert.userId ?? "");
+      const normalizedUserId = userId.trim().toLowerCase();
+      // Check if it's likely an email (contains @)
+      if (normalizedUserId.includes("@")) {
+        if (
+          !authenticatedEmailSet.has(normalizedUserId) &&
+          !guestWatchlistEmails.has(normalizedUserId)
+        ) {
+          guestAlertEmails.add(normalizedUserId);
+        }
+      }
+    }
+
+    // Combine all guest emails
+    const allGuestEmails = Array.from(
+      new Set([...guestWatchlistEmails, ...guestAlertEmails])
+    );
+
+    // Create guest users (use email as both id and name placeholder)
+    const guestUsers = allGuestEmails.map((email) => ({
+      id: email,
+      email: email,
+      name: email.split("@")[0], // Use email prefix as name
+    }));
+
+    return [...authenticatedUsers, ...guestUsers];
   } catch (e) {
     console.error("Error fetching users for news email:", e);
     return [];

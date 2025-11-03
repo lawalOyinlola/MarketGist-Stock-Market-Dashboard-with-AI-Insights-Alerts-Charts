@@ -357,7 +357,7 @@ const getWatchlistWithDataCached = cache(
 
       if (!email) return [];
 
-      // Get user ID from email
+      // Get user ID from email (for both authenticated and guest users)
       const { connectToDatabase } = await import("@/database/mongoose");
       const mongoose = await connectToDatabase();
       const db = mongoose.connection.db;
@@ -367,13 +367,18 @@ const getWatchlistWithDataCached = cache(
         .collection("user")
         .findOne<{ _id?: unknown; id?: string; email?: string }>({ email });
 
-      if (!user) return [];
-
-      const userId =
-        (user.id as string) ??
-        (user._id as { toHexString?: () => string })?.toHexString?.() ??
-        (user._id as { toString?: () => string })?.toString?.() ??
-        "";
+      // Determine userId: authenticated user ID or email for guest users
+      let userId: string;
+      if (user) {
+        userId =
+          (user.id as string) ??
+          (user._id as { toHexString?: () => string })?.toHexString?.() ??
+          (user._id as { toString?: () => string })?.toString?.() ??
+          "";
+      } else {
+        // Guest user - use email as userId
+        userId = email;
+      }
 
       if (!userId) return [];
 
@@ -409,7 +414,7 @@ const getWatchlistWithDataCached = cache(
               userId,
               symbol,
               company: profile.name || symbol,
-              addedAt: new Date(), // You might want to store this in your DB
+              addedAt: new Date(), 
               currentPrice: quote.c,
               changePercent: quote.dp,
               priceFormatted: quote.c ? `$${quote.c.toFixed(2)}` : undefined,

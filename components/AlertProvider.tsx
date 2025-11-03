@@ -6,12 +6,14 @@ import {
   useContext,
   useMemo,
   useState,
+  useEffect,
 } from "react";
 import { toast } from "sonner";
 import {
   createAlert,
   removeAlert,
   updateAlert,
+  getAlertsByEmail,
 } from "@/lib/actions/alert.actions";
 
 type AlertContextValue = {
@@ -42,14 +44,20 @@ const AlertContext = createContext<AlertContextValue | null>(null);
 
 export function AlertProvider({
   initialAlerts = [],
+  email,
   children,
+  onEmailRequired,
 }: {
   initialAlerts?: AlertData[];
+  email?: string;
   children: React.ReactNode;
+  onEmailRequired?: () => void;
 }) {
   const [alertsState, setAlertsState] = useState<Map<string, AlertData>>(
     () => new Map(initialAlerts.map((alert) => [alert.id, alert]))
   );
+
+  const effectiveEmail = email;
 
   const hasAlert = useCallback(
     (symbol: string) => {
@@ -80,6 +88,19 @@ export function AlertProvider({
       threshold: number,
       frequency: "once" | "daily" | "hourly" = "daily"
     ) => {
+      // Check if we have an email (either authenticated or guest)
+      if (!effectiveEmail) {
+        // Show email capture modal for guest users
+        if (onEmailRequired) {
+          onEmailRequired();
+        } else {
+          toast.error("Email required", {
+            description: "Please provide your email to create price alerts",
+          });
+        }
+        return false;
+      }
+
       try {
         const result = await createAlert(
           symbol,
@@ -87,7 +108,8 @@ export function AlertProvider({
           alertName,
           alertType,
           threshold,
-          frequency
+          frequency,
+          effectiveEmail || undefined
         );
 
         if (result.success && result.alertId) {
@@ -123,36 +145,51 @@ export function AlertProvider({
         return false;
       }
     },
-    []
+    [effectiveEmail, onEmailRequired]
   );
 
-  const remove = useCallback(async (alertId: string) => {
-    try {
-      const result = await removeAlert(alertId);
-
-      if (result.success) {
-        setAlertsState((prev) => {
-          const next = new Map(prev);
-          next.delete(alertId);
-          return next;
-        });
-        toast.success("Alert removed", {
-          description: "Alert has been removed successfully",
-        });
-        return true;
+  const remove = useCallback(
+    async (alertId: string) => {
+      // Check if we have an email (either authenticated or guest)
+      if (!effectiveEmail) {
+        if (onEmailRequired) {
+          onEmailRequired();
+        } else {
+          toast.error("Email required", {
+            description: "Please provide your email to manage alerts",
+          });
+        }
+        return false;
       }
 
-      toast.error("Failed to remove alert", {
-        description: result.error || "Please try again",
-      });
-      return false;
-    } catch (e) {
-      toast.error("Failed to remove alert", {
-        description: "An unexpected error occurred",
-      });
-      return false;
-    }
-  }, []);
+      try {
+        const result = await removeAlert(alertId);
+
+        if (result.success) {
+          setAlertsState((prev) => {
+            const next = new Map(prev);
+            next.delete(alertId);
+            return next;
+          });
+          toast.success("Alert removed", {
+            description: "Alert has been removed successfully",
+          });
+          return true;
+        }
+
+        toast.error("Failed to remove alert", {
+          description: result.error || "Please try again",
+        });
+        return false;
+      } catch (e) {
+        toast.error("Failed to remove alert", {
+          description: "An unexpected error occurred",
+        });
+        return false;
+      }
+    },
+    [effectiveEmail, onEmailRequired]
+  );
 
   const update = useCallback(
     async (
@@ -164,6 +201,18 @@ export function AlertProvider({
         frequency?: "once" | "daily" | "hourly";
       }
     ) => {
+      // Check if we have an email (either authenticated or guest)
+      if (!effectiveEmail) {
+        if (onEmailRequired) {
+          onEmailRequired();
+        } else {
+          toast.error("Email required", {
+            description: "Please provide your email to update alerts",
+          });
+        }
+        return false;
+      }
+
       try {
         const result = await updateAlert(alertId, updates);
 
@@ -193,7 +242,7 @@ export function AlertProvider({
         return false;
       }
     },
-    []
+    [effectiveEmail, onEmailRequired]
   );
 
   const value = useMemo<AlertContextValue>(
@@ -207,6 +256,25 @@ export function AlertProvider({
     }),
     [alertsState, hasAlert, getAlertsForSymbol, add, remove, update]
   );
+
+  // Auto-load alerts on mount for guests
+  useEffect(() => {
+    if (!effectiveEmail) {
+      return;
+    }
+    // Load alerts from database
+    getAlertsByEmail(effectiveEmail)
+      .then((alerts) => {
+        if (alerts.length > 0) {
+          const alertsMap = new Map(alerts.map((alert) => [alert.id, alert]));
+          setAlertsState(alertsMap);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load alerts:", error);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveEmail]);
 
   return (
     <AlertContext.Provider value={value}>{children}</AlertContext.Provider>
