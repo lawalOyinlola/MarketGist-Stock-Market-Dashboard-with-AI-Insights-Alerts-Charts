@@ -53,6 +53,8 @@ const SignUp = () => {
         const guestEmail = guestStorage.getGuestEmail();
         if (guestEmail && guestEmail === data.email) {
           guestStorage.clearGuestEmail();
+          // Dispatch custom event to notify other components
+          window.dispatchEvent(new Event("guestEmailChanged"));
         }
 
         toast.success("Sign up successful", {

@@ -49,7 +49,10 @@ export const signUpWithEmail = async ({
     if (response) {
       try {
         // Migrate guest data to new user account
-        await migrateGuestData(email);
+        const newUserId = response?.user?.id ?? "";
+        if (newUserId) {
+          await migrateGuestData(email, newUserId);
+        }
 
         await inngest.send({
           name: "app/user.created",
@@ -93,7 +96,10 @@ export const signInWithEmail = async ({ email, password }: SignInFormData) => {
     if (response) {
       try {
         // Migrate guest data to authenticated user account
-        await migrateGuestData(email);
+        const newUserId = response?.user?.id ?? "";
+        if (newUserId) {
+          await migrateGuestData(email, newUserId);
+        }
       } catch (migrationError) {
         console.error("Failed to migrate guest data:", migrationError);
         // Don't fail sign-in if migration fails
@@ -210,21 +216,14 @@ export const resetPasswordWithToken = async ({
  * Only migrates if guest data exists for the provided email.
  * Called when user signs up or signs in with the same email used as a guest.
  */
-async function migrateGuestData(email: string) {
+async function migrateGuestData(email: string, newUserId: string) {
   try {
-    // Get the authenticated user's ID
-    const { getAuth } = await import("@/lib/better-auth/auth");
-    const auth = await getAuth();
-    const session = await auth.api.getSession({ headers: await headers() });
-
-    if (!session?.user) {
-      console.log("No authenticated user found, skipping migration");
+    if (!newUserId) {
+      console.log("No authenticated user id provided, skipping migration");
       return;
     }
 
-    const newUserId = session.user.id;
-
-    await connectToDatabase();
+    const mongoose = await connectToDatabase();
 
     // Check if guest data exists for this email before migrating
     const watchlistCount = await Watchlist.countDocuments({ userId: email });
@@ -235,20 +234,93 @@ async function migrateGuestData(email: string) {
       return;
     }
 
-    // Migrate watchlist items
-    const watchlistResult = await Watchlist.updateMany(
-      { userId: email }, // Find by guest email
-      { $set: { userId: newUserId } } // Update to new user ID
-    );
+    const session = await mongoose.startSession();
+    let watchlistModified = 0;
+    let alertsModified = 0;
 
-    // Migrate alerts
-    const alertsResult = await Alert.updateMany(
-      { userId: email }, // Find by guest email
-      { $set: { userId: newUserId } } // Update to new user ID
-    );
+    await session.withTransaction(async () => {
+      // 1) WATCHLIST: dedupe by symbol before reassigning userId
+      const existingUserWatchlist: Array<{ symbol: string }> =
+        await Watchlist.find(
+          { userId: newUserId },
+          { symbol: 1 },
+          { session }
+        ).lean();
+      const existingSymbols = new Set(
+        existingUserWatchlist.map((w: { symbol: string }) => String(w.symbol))
+      );
+
+      if (existingSymbols.size > 0) {
+        const deleteRes = await Watchlist.deleteMany(
+          { userId: email, symbol: { $in: Array.from(existingSymbols) } },
+          { session }
+        );
+        // deleteRes.deletedCount may be undefined in older drivers; default to 0
+      }
+
+      const wlUpdateRes = await Watchlist.updateMany(
+        { userId: email },
+        { $set: { userId: newUserId } },
+        { session }
+      );
+      watchlistModified = (wlUpdateRes as any)?.modifiedCount ?? 0;
+
+      // 2) ALERTS: remove conflicting active guest alerts, migrate remaining (including inactive)
+      const existingActiveAlerts = await Alert.find(
+        { userId: newUserId, isActive: true },
+        { symbol: 1, alertType: 1, threshold: 1 },
+        { session }
+      ).lean();
+
+      const existingActiveKeySet = new Set(
+        (
+          existingActiveAlerts as unknown as Array<{
+            symbol: string;
+            alertType: string;
+            threshold: number;
+          }>
+        ).map((a) => `${a.symbol}|${a.alertType}|${a.threshold}`)
+      );
+
+      // Find guest active alerts and delete only those that conflict
+      const guestActiveAlerts = await Alert.find(
+        { userId: email, isActive: true },
+        { _id: 1, symbol: 1, alertType: 1, threshold: 1 },
+        { session }
+      ).lean();
+
+      const conflictingGuestIds = (
+        guestActiveAlerts as unknown as Array<{
+          _id: any;
+          symbol: string;
+          alertType: string;
+          threshold: number;
+        }>
+      )
+        .filter((a) =>
+          existingActiveKeySet.has(`${a.symbol}|${a.alertType}|${a.threshold}`)
+        )
+        .map((a) => a._id);
+
+      if (conflictingGuestIds.length > 0) {
+        await Alert.deleteMany(
+          { _id: { $in: conflictingGuestIds } },
+          { session }
+        );
+      }
+
+      const alUpdateRes = await Alert.updateMany(
+        { userId: email },
+        { $set: { userId: newUserId } },
+        { session }
+      );
+      alertsModified = (alUpdateRes as any)?.modifiedCount ?? 0;
+    });
+
+    await session.endSession();
 
     console.log(
-      `Migrated ${watchlistResult.modifiedCount} watchlist items and ${alertsResult.modifiedCount} alerts for ${email}`
+      `Migrated ${watchlistModified} watchlist items and ${alertsModified} alerts for ${email}`
     );
   } catch (error) {
     console.error("Error migrating guest data:", error);

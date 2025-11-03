@@ -61,6 +61,9 @@ export default function GuestEmailModal({
       // Store email in localStorage
       guestStorage.setGuestEmail(data.email);
 
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new Event("guestEmailChanged"));
+
       // Call the callback
       onEmailProvided(data.email);
 

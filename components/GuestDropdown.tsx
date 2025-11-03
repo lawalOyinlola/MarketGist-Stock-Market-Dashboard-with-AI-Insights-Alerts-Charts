@@ -10,18 +10,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
-import { ChevronsUpDownIcon, LogOutIcon, UserRoundIcon } from "lucide-react";
+import { ChevronsUpDownIcon, LogInIcon, UserRoundIcon } from "lucide-react";
 import NavItems from "./NavItems";
-import { signOut } from "@/lib/actions/auth.actions";
-import { toast } from "sonner";
 
-const UserDropdown = ({
-  user,
+const GuestDropdown = ({
+  email,
   initialStocks,
 }: {
-  user: User;
+  email?: string | null;
   initialStocks: StockWithWatchlistStatus[];
 }) => {
   const router = useRouter();
@@ -33,21 +31,13 @@ const UserDropdown = ({
     setOpen(false);
   }, [pathname]);
 
-  const handleSignOut: () => Promise<void> = async () => {
-    const result = await signOut();
-    if (result?.success === false) {
-      toast.error("Sign out failed", {
-        description: result.error || "Please try again",
-      });
-      return;
-    }
-    toast.success("Signed out successfully!", {
-      description: "Redirecting...",
-    });
-    setTimeout(() => {
-      router.push("/sign-in");
-    }, 1000);
+  const handleSignIn = () => {
+    setOpen(false);
+    router.push("/sign-in");
   };
+
+  // Get email prefix (part before @)
+  const emailPrefix = email ? email.split("@")[0] : null;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -56,35 +46,44 @@ const UserDropdown = ({
           variant="ghost"
           className="flex items-center gap-3 text-gray-400 hover:text-app-color"
         >
-          <UserAvatar />
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-app-color text-gray-900 text-sm font-bol">
+              <UserRoundIcon className="size-5" />
+            </AvatarFallback>
+          </Avatar>
           <div className="hidden md:flex flex-col items-start">
             <span className="text-base font-medium text-gray-400">
-              {user.name}
+              {emailPrefix ? `Guest: ${emailPrefix}` : "Guest"}
             </span>
           </div>
           <ChevronsUpDownIcon className="w-4 h-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="text-gray-400">
+      <DropdownMenuContent className="text-gray-400 min-w-40">
         <DropdownMenuLabel>
           <div className="flex relative items-center gap-3 py-2">
-            <UserAvatar user={user} />
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-gray-700 text-gray-400 text-sm font-bold">
+                {email ? email.charAt(0).toUpperCase() : "G"}
+              </AvatarFallback>
+            </Avatar>
+
             <div className="flex flex-col">
-              <span className="text-base font-medium text-gray-400">
-                {user.name}
-              </span>
-              <span className="text-sm text-gray-500">{user.email}</span>
+              <span className="text-base font-medium text-gray-400">Guest</span>
+              {email && <span className="text-sm text-gray-500">{email}</span>}
             </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-gray-600" />
+
         <DropdownMenuItem
-          onClick={handleSignOut}
+          onClick={handleSignIn}
           className="text-gray-100 text-md font-medium focus:bg-transparent focus:text-app-color transition-colors cursor-pointer"
         >
-          <LogOutIcon className="h-4 w-4 mr-2 hidden sm:block" />
-          Logout
+          <LogInIcon className="h-4 w-4 mr-2 hidden sm:block" />
+          Sign In
         </DropdownMenuItem>
+
         <DropdownMenuSeparator className="block sm:hidden bg-gray-600" />
         <nav className="sm:hidden">
           <NavItems
@@ -98,30 +97,4 @@ const UserDropdown = ({
   );
 };
 
-const UserAvatar = ({
-  size = "h-8 w-8",
-  user,
-}: {
-  size?: string;
-  user?: User | null;
-}) => {
-  const shouldShowImage = user?.name?.toLowerCase().includes("oyinlola");
-  const imageSrc = shouldShowImage
-    ? "/assets/images/lawal_oyinlola-profile_picture.png"
-    : "";
-
-  return (
-    <Avatar className={size}>
-      <AvatarImage src={imageSrc} />
-      <AvatarFallback className="bg-app-color text-gray-900 text-sm font-bold">
-        {user ? (
-          user.name.charAt(0).toUpperCase()
-        ) : (
-          <UserRoundIcon className="size-5" />
-        )}
-      </AvatarFallback>
-    </Avatar>
-  );
-};
-
-export default UserDropdown;
+export default GuestDropdown;

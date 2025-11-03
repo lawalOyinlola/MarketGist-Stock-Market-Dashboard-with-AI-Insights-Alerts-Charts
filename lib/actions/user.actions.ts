@@ -38,8 +38,8 @@ export const getAllUsersForNewsEmail = async (): Promise<NewsUser[]> => {
       const userId = String(item.userId);
       // If userId looks like an email and is not an authenticated user
       if (userId.includes("@")) {
-        const isAuthUser = authenticatedUsers.some((u) => u.id === userId);
-        if (!isAuthUser) {
+        const isAuthEmail = authenticatedUsers.some((u) => u.email === userId);
+        if (!isAuthEmail) {
           guestWatchlistEmails.add(userId);
         }
       }
@@ -52,8 +52,8 @@ export const getAllUsersForNewsEmail = async (): Promise<NewsUser[]> => {
       const userId = String(alert.userId);
       // Check if it's likely an email (contains @)
       if (userId.includes("@")) {
-        const isAuthUser = authenticatedUsers.some((u) => u.id === userId);
-        if (!isAuthUser && !guestWatchlistEmails.has(userId)) {
+        const isAuthEmail = authenticatedUsers.some((u) => u.email === userId);
+        if (!isAuthEmail && !guestWatchlistEmails.has(userId)) {
           guestAlertEmails.add(userId);
         }
       }

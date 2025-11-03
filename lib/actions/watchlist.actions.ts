@@ -41,8 +41,6 @@ export async function getWatchlistSymbolsByEmail(
   }
 }
 
-
-
 export async function addToWatchlist(
   symbol: string,
   company: string,
@@ -104,6 +102,11 @@ export async function removeFromWatchlist(
   symbol: string,
   guestEmail?: string
 ): Promise<{ success: boolean; error?: string }> {
+  // Validate guest email format if provided
+  if (guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+    return { success: false, error: "Invalid email format" };
+  }
+
   try {
     const mongoose = await connectToDatabase();
     const db = mongoose.connection.db;
