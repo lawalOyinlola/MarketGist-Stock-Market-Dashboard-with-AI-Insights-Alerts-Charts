@@ -8,8 +8,57 @@ import {
   COMPANY_PROFILE_WIDGET_CONFIG,
   COMPANY_FINANCIALS_WIDGET_CONFIG,
   MARKET_OVERVIEW_WIDGET_CONFIG,
+  SITE_URL,
+  SITE_NAME,
 } from "@/lib/constants";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: StockDetailsPageProps): Promise<Metadata> {
+  const { symbol } = await params;
+  const upperSymbol = symbol?.toUpperCase() || "";
+
+  return {
+    title: `${upperSymbol} - Stock Price, Charts & Analysis`,
+    description: `Track ${upperSymbol} stock price in real-time. View detailed charts, technical analysis, company profile, and financial data. Get personalized alerts and insights. Built by Yero.`,
+    keywords: [
+      upperSymbol,
+      `${upperSymbol} stock`,
+      `${upperSymbol} price`,
+      `${upperSymbol} chart`,
+      "stock analysis",
+      "stock tracker",
+      "real-time stock prices",
+    ],
+    openGraph: {
+      title: `${upperSymbol} - Stock Price, Charts & Analysis | Marketgist`,
+      description: `Track ${upperSymbol} stock price in real-time. View detailed charts, technical analysis, and company profile.`,
+      url: `${SITE_URL}/stocks/${upperSymbol}`,
+      siteName: SITE_NAME,
+      images: [
+        {
+          url: `${SITE_URL}/assets/screenshots/Screenshot-stock-details.webp`,
+          width: 1200,
+          height: 630,
+          alt: `${upperSymbol} Stock Analysis`,
+        },
+      ],
+      locale: "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${upperSymbol} - Stock Price & Analysis`,
+      description: `Track ${upperSymbol} stock price in real-time with detailed charts and technical analysis.`,
+      images: [`${SITE_URL}/assets/screenshots/Screenshot-stock-details.webp`],
+    },
+    alternates: {
+      canonical: `${SITE_URL}/stocks/${upperSymbol}`,
+    },
+  };
+}
 
 const StockDetails = async ({ params }: StockDetailsPageProps) => {
   const { symbol } = await params;

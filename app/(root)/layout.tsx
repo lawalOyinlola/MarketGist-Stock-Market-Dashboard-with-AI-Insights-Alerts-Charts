@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { getAuth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { NotificationPoller } from "@/components/NotificationPoller";
@@ -29,7 +30,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
     : ([[], []] as [string[], AlertData[]]);
 
   return (
-    <main className="min-h-screen text-gray-400">
+    <main className="min-h-screen text-gray-400 flex flex-col">
       <GuestWrapper
         initialWatchlistSymbols={initialWatchlistSymbols}
         initialWatchlistData={[]}
@@ -38,7 +39,8 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
       >
         {session?.user && <NotificationPoller />}
         <Header user={user} />
-        <div className="container py-10">{children}</div>
+        <div className="container py-10 flex-1">{children}</div>
+        <Footer />
       </GuestWrapper>
     </main>
   );

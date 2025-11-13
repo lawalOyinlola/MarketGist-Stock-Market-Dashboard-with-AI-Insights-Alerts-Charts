@@ -112,6 +112,8 @@ READ MORE BUTTON:
 <div style="margin: 20px 0 0 0;">
 <a href="ARTICLE_URL" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px; display: block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
 </div>
+<br />
+<br />
 
 ARTICLE DIVIDER:
 Close each article container:
@@ -166,6 +168,9 @@ Stock Market Had Mixed Results Today
 <div style="margin: 20px 0 0 0;">
 <a href="https://example.com/article1" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px; display: block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
 </div>
+
+<br />
+<br />
 </div>
 
 <div style="border-top: 1px solid #374151; margin: 32px 0 24px 0;"></div>
@@ -196,6 +201,9 @@ Apple Stock Jumped After Great Earnings Report
 <div style="margin: 20px 0 0 0;">
 <a href="https://example.com/article2" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px; display: block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
 </div>
+
+<br />
+<br />
 </div>`;
 
 export const TRADINGVIEW_SYMBOL_MAPPING_PROMPT = `You are an expert in financial markets and trading platforms. Your task is to find the correct TradingView symbol that corresponds to a given Finnhub stock symbol.
