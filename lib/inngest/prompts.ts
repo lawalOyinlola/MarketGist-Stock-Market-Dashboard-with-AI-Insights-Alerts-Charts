@@ -113,6 +113,7 @@ READ MORE BUTTON:
 <a href="ARTICLE_URL" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px; display: block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
 </div>
 <br />
+<br />
 
 ARTICLE DIVIDER:
 Close each article container:
@@ -169,6 +170,7 @@ Stock Market Had Mixed Results Today
 </div>
 
 <br />
+<br />
 </div>
 
 <div style="border-top: 1px solid #374151; margin: 32px 0 24px 0;"></div>
@@ -200,6 +202,7 @@ Apple Stock Jumped After Great Earnings Report
 <a href="https://example.com/article2" style="color: #9ecf2e; text-decoration: none; font-weight: 500; font-size: 14px; display: block;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
 </div>
 
+<br />
 <br />
 </div>`;
 

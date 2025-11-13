@@ -10,6 +10,56 @@ import {
   MARKET_OVERVIEW_WIDGET_CONFIG,
 } from "@/lib/constants";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://marketgist.vercel.app";
+
+export async function generateMetadata({
+  params,
+}: StockDetailsPageProps): Promise<Metadata> {
+  const { symbol } = await params;
+  const upperSymbol = symbol?.toUpperCase() || "";
+
+  return {
+    title: `${upperSymbol} - Stock Price, Charts & Analysis`,
+    description: `Track ${upperSymbol} stock price in real-time. View detailed charts, technical analysis, company profile, and financial data. Get personalized alerts and insights. Built by Yero.`,
+    keywords: [
+      upperSymbol,
+      `${upperSymbol} stock`,
+      `${upperSymbol} price`,
+      `${upperSymbol} chart`,
+      "stock analysis",
+      "stock tracker",
+      "real-time stock prices",
+    ],
+    openGraph: {
+      title: `${upperSymbol} - Stock Price, Charts & Analysis | Marketgist`,
+      description: `Track ${upperSymbol} stock price in real-time. View detailed charts, technical analysis, and company profile.`,
+      url: `${siteUrl}/stocks/${upperSymbol}`,
+      siteName: "Marketgist",
+      images: [
+        {
+          url: `${siteUrl}/assets/images/stock-details.png`,
+          width: 1200,
+          height: 630,
+          alt: `${upperSymbol} Stock Analysis`,
+        },
+      ],
+      locale: "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${upperSymbol} - Stock Price & Analysis`,
+      description: `Track ${upperSymbol} stock price in real-time with detailed charts and technical analysis.`,
+      images: [`${siteUrl}/assets/images/stock-details.png`],
+    },
+    alternates: {
+      canonical: `${siteUrl}/stocks/${upperSymbol}`,
+    },
+  };
+}
 
 const StockDetails = async ({ params }: StockDetailsPageProps) => {
   const { symbol } = await params;
