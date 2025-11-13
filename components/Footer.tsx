@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SITE_NAME } from "@/lib/constants";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -8,7 +9,9 @@ const Footer = () => {
       <div className="container">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
           <div className="flex flex-wrap items-center gap-4 justify-center md:justify-start">
-            <span>© {currentYear} Marketgist. All rights reserved.</span>
+            <span>
+              © {currentYear} {SITE_NAME}. All rights reserved.
+            </span>
             <span className="hidden md:inline">•</span>
             <Link
               href="/unsubscribe"

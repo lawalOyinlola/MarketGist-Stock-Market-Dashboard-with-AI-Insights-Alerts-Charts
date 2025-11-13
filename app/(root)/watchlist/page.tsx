@@ -1,9 +1,7 @@
 import { searchStocks } from "@/lib/actions/finnhub.actions";
 import WatchlistPageClient from "./WatchlistPageClient";
 import type { Metadata } from "next";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://marketgist.vercel.app";
+import { SITE_URL, SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Watchlist - Track Your Favorite Stocks",
@@ -21,11 +19,11 @@ export const metadata: Metadata = {
     title: "Watchlist - Track Your Favorite Stocks | Marketgist",
     description:
       "Create and manage your personalized stock watchlist. Track your favorite stocks in real-time with comprehensive analytics.",
-    url: `${siteUrl}/watchlist`,
-    siteName: "Marketgist",
+    url: `${SITE_URL}/watchlist`,
+    siteName: SITE_NAME,
     images: [
       {
-        url: `${siteUrl}/assets/images/dashboard-preview.png`,
+        url: `${SITE_URL}/assets/images/dashboard-preview.png`,
         width: 1200,
         height: 630,
         alt: "Marketgist Watchlist",
@@ -39,10 +37,10 @@ export const metadata: Metadata = {
     title: "Watchlist - Track Your Favorite Stocks",
     description:
       "Create and manage your personalized stock watchlist with real-time tracking.",
-    images: [`${siteUrl}/assets/images/dashboard-preview.png`],
+    images: [`${SITE_URL}/assets/images/dashboard-preview.png`],
   },
   alternates: {
-    canonical: `${siteUrl}/watchlist`,
+    canonical: `${SITE_URL}/watchlist`,
   },
 };
 

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/constants";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,19 +15,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://marketgist.vercel.app";
-const siteName = "Marketgist";
-const siteDescription =
-  "Track real-time stock prices, get personalized alerts, and explore detailed company insights. Comprehensive stock market tracker with AI integration, real-time charts, and intelligent market insights. Built by Yero.";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Marketgist - Real-Time Stock Market Tracker & Alerts",
-    template: "%s | Marketgist",
+    default: `${SITE_NAME} - Real-Time Stock Market Tracker & Alerts`,
+    template: "%s | ${SITE_NAME}",
   },
-  description: siteDescription,
+  description: SITE_DESCRIPTION,
   keywords: [
     "stock market",
     "stock tracker",
@@ -52,13 +47,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: siteUrl,
-    siteName: siteName,
-    title: "Marketgist - Real-Time Stock Market Tracker & Alerts",
-    description: siteDescription,
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} - Real-Time Stock Market Tracker & Alerts`,
+    description: SITE_DESCRIPTION,
     images: [
       {
-        url: `${siteUrl}/assets/screenshots/Screenshot-dashboard.webp`,
+        url: `${SITE_URL}/assets/screenshots/Screenshot-dashboard.webp`,
         width: 1200,
         height: 630,
         alt: "Marketgist Dashboard",
@@ -67,9 +62,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Marketgist - Real-Time Stock Market Tracker & Alerts",
-    description: siteDescription,
-    images: [`${siteUrl}/assets/screenshots/Screenshot-dashboard.webp`],
+    title: `${SITE_NAME} - Real-Time Stock Market Tracker & Alerts`,
+    description: SITE_DESCRIPTION,
+    images: [`${SITE_URL}/assets/screenshots/Screenshot-dashboard.webp`],
     creator: "@HoneyzRich",
   },
   robots: {
@@ -89,10 +84,10 @@ export const metadata: Metadata = {
     // yandex: "your-yandex-verification-code",
   },
   alternates: {
-    canonical: siteUrl,
+    canonical: SITE_URL,
     types: {
       "application/rss+xml": [
-        { url: `${siteUrl}/api/rss`, title: "Marketgist RSS Feed" },
+        { url: `${SITE_URL}/api/rss`, title: `${SITE_NAME} RSS Feed` },
       ],
     },
   },
@@ -106,9 +101,9 @@ export default function RootLayout({
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: siteName,
-    description: siteDescription,
-    url: siteUrl,
+    name: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
     applicationCategory: "FinanceApplication",
     operatingSystem: "Web",
     offers: {
@@ -119,24 +114,11 @@ export default function RootLayout({
     creator: {
       "@type": "Organization",
       name: "Yero",
-      url: siteUrl,
+      url: SITE_URL,
     },
     publisher: {
       "@type": "Organization",
       name: "Yero",
-    },
-    mainEntity: {
-      "@type": "WebSite",
-      name: siteName,
-      url: siteUrl,
-      potentialAction: {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: `${siteUrl}/search?q={search_term_string}`,
-        },
-        "query-input": "required name=search_term_string",
-      },
     },
   };
 

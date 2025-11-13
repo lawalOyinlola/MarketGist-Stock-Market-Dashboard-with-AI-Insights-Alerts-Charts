@@ -8,12 +8,11 @@ import {
   COMPANY_PROFILE_WIDGET_CONFIG,
   COMPANY_FINANCIALS_WIDGET_CONFIG,
   MARKET_OVERVIEW_WIDGET_CONFIG,
+  SITE_URL,
+  SITE_NAME,
 } from "@/lib/constants";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://marketgist.vercel.app";
 
 export async function generateMetadata({
   params,
@@ -36,11 +35,11 @@ export async function generateMetadata({
     openGraph: {
       title: `${upperSymbol} - Stock Price, Charts & Analysis | Marketgist`,
       description: `Track ${upperSymbol} stock price in real-time. View detailed charts, technical analysis, and company profile.`,
-      url: `${siteUrl}/stocks/${upperSymbol}`,
-      siteName: "Marketgist",
+      url: `${SITE_URL}/stocks/${upperSymbol}`,
+      siteName: SITE_NAME,
       images: [
         {
-          url: `${siteUrl}/assets/images/stock-details.png`,
+          url: `${SITE_URL}/assets/screenshots/Screenshot-stock-details.webp`,
           width: 1200,
           height: 630,
           alt: `${upperSymbol} Stock Analysis`,
@@ -53,10 +52,10 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: `${upperSymbol} - Stock Price & Analysis`,
       description: `Track ${upperSymbol} stock price in real-time with detailed charts and technical analysis.`,
-      images: [`${siteUrl}/assets/images/stock-details.png`],
+      images: [`${SITE_URL}/assets/screenshots/Screenshot-stock-details.webp`],
     },
     alternates: {
-      canonical: `${siteUrl}/stocks/${upperSymbol}`,
+      canonical: `${SITE_URL}/stocks/${upperSymbol}`,
     },
   };
 }

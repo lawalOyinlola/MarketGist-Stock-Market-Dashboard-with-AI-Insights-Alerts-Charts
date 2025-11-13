@@ -1,5 +1,12 @@
 export const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
 
+// lib/constants/site.ts
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://marketgist.vercel.app";
+export const SITE_NAME = "Marketgist";
+export const SITE_DESCRIPTION =
+  "Track real-time stock prices, get personalized alerts, and explore detailed company insights. Comprehensive stock market tracker with AI integration, real-time charts, and intelligent market insights. Built by Yero.";
+
 interface NavItem {
   href: string;
   label: string;
