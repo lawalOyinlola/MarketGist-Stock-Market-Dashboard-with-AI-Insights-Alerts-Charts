@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:db": "tsx scripts/test-db-connection.ts",
-    "init:db": "tsx scripts/init-database.ts"
+    "init:db": "tsx scripts/init-database.ts",
+    "verify:setup": "tsx scripts/verify-setup.ts"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
